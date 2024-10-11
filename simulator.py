@@ -7,7 +7,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.spatial import Voronoi, voronoi_plot_2d
 
-# 1. improve robot to triangle
 # 3. show density
 # 4. coverage control
 class Robot:
@@ -95,22 +94,29 @@ class Robot:
     self.p_trail.set_data(self.trail[:,0], self.trail[:,1])
 
 
+class DensityFunction:
+  def __init__(self, Z, color, x = np.linspace(-5, 5, 100),y = np.linspace(-5, 5, 100)):
+    self.X, self.Y = np.meshgrid(x, y)
+    self.Z = Z
+    self.color = color
+
 
 class Swarm: 
   def __init__(self, 
     robots,
-    density,
+    density_functions,
     environment = [[-10, -10], [-10, 10], [10, 10], [10, -10]],
     show_voronoi: bool = False,
     show_density: bool = False,
   ):
     self.robots = robots
     self.environment = environment
-    self.density = density
+    self.density_functions = density_functions
     self.show_voronoi = show_voronoi
     self.show_density = show_density
     self.fininite_segments_line = None
     self.infinite_segments_line = None
+    self.p_density_functions = []
 
 
     self.__init_plot()
@@ -125,6 +131,7 @@ class Swarm:
       self.axes.add_line(robot.p_trail)
     
     self.plot_voronoi(show_points=False, show_vertices=False)
+    self.plot_density()
 
     self.axes.autoscale()
     self.axes.set_axis_off()
@@ -138,12 +145,28 @@ class Swarm:
       robot.update_plot()
     
     self.plot_voronoi(show_points=False, show_vertices=False)
+    self.plot_density()
 
     self.figure.canvas.draw_idle()
     self.figure.canvas.flush_events()
 
-  def plot_density(self):
-    pass
+  def plot_density(self, density_functions=None):
+    # plot  the current density functions
+    for p_density_function in self.p_density_functions:
+      p_density_function.remove()
+    self.p_density_functions = []
+
+    if density_functions is not None:
+      self.density_functions = density_functions
+    elif self.density_functions is None:
+      self.density_functions = []
+
+    for density_function in self.density_functions:
+      self.p_density_functions.append(self.axes.contour(
+        density_function.X, 
+        density_function.Y, 
+        density_function.Z, levels=10, colors=density_function.color))
+
 
   def plot_voronoi(self, **kw):
     ax = self.axes
@@ -230,7 +253,13 @@ if __name__ == "__main__":
   robot_3 = Robot( robot_pose=[5, -5, 0.1])
   robot_4 = Robot( robot_pose=[-5, 5, 0.1])
   robots = [robot_1, robot_2, robot_3]
-  swarm = Swarm(robots=[robot_1, robot_2, robot_3, robot_4], density=None)
+  x = np.linspace(-5, 5, 100)
+  y = np.linspace(-5, 5, 100)
+  X, Y = np.meshgrid(x, y)
+  mu = np.array([0, 0])
+  Z = np.exp(-((X - mu[0])**2 + (Y - mu[1])**2))
+  density_function = DensityFunction(Z, color='blue')
+  swarm = Swarm(robots=[robot_1, robot_2, robot_3, robot_4], density_functions=[density_function])
 
   for i in range(100):
     robot_2.set_mobile_base_speed(v=0.5, w=0)
