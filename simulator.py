@@ -236,6 +236,38 @@ class Swarm:
     ax.set_xlim(xy_min[0], xy_max[0])
     ax.set_ylim(xy_min[1], xy_max[1])
 
+  def mirror_robot(self, robot):
+    environment = self.environment
+    M = environment.shape[1]
+    mirrored_positions = np.empty(2, M -1)
+    point = robot.robot_pose[:2]
+
+    for j in range(M - 1):
+      # Get the start and end points of the environment edge
+      side_start = environment[:, j].reshape(2, 1)
+      side_end = environment[:, j + 1].reshape(2, 1)
+      side = side_end - side_start  # Edge vector
+
+      # Compute the vector from the edge start to the robot position
+      point_wrt_side = point - side_start
+
+      # Compute the projection of the point onto the edge
+      side_length_squared = np.dot(side.T, side)[0, 0]
+      if side_length_squared == 0:
+          # Avoid division by zero for degenerate edge
+          mirrored_positions[:, j] = point.flatten()
+          continue
+
+      length_of_projection = np.dot(point_wrt_side.T, side)[0, 0] / side_length_squared
+      projected_vector = side_start + length_of_projection * side
+
+      # Compute the mirrored point
+      mirrored_point = point - 2 * (point - projected_vector)
+
+      # Store the mirrored point
+      mirrored_positions[:, j] = mirrored_point.flatten()
+    return mirrored_positions
+
   def plot_environment(self):
     pass
 
