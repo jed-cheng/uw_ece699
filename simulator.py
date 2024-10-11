@@ -6,18 +6,16 @@ from matplotlib.lines import Line2D
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.spatial import Voronoi, voronoi_plot_2d
-from sympy import symbols, Eq, solve, Point, Line, Segment
 
-# 1. robot
-# 2. trail
-# 3. density
+# 1. improve robot to triangle
+# 3. show density
 # 4. coverage control
 class Robot:
 
   def __init__(self, 
     robot_pose,
     robot_size = 0.5,
-    robot_color = 'yellow',
+    robot_color = 'black',
     trail = None,
     trail_color = None,
     trail_width = 5,
@@ -58,30 +56,39 @@ class Robot:
     robot_pose = self.robot_pose
     robot_size = self.robot_size
     robot_trail = self.trail
-    R = np.array([
+    R = np.array([[0.0, 1.0], [-1.0, 0.0]]) @ np.array([
       [math.cos(robot_pose[2]), -math.sin(robot_pose[2])],
       [math.sin(robot_pose[2]), math.cos(robot_pose[2])]
     ])
     t = np.array([robot_pose[0], robot_pose[1]])
-    # v = np.array([
-    #   [0, robot_size[1] / 2.0],  
-    #   [-robot_size[0] / 2.0, -robot_size[1] / 2.0],  
-    #   [robot_size[0] / 2.0, -robot_size[1] / 2.0],  
-    # ])
+    v = np.array([
+      [0, robot_size],
+      [robot_size * -math.sqrt(3)/2 , -robot_size/2],
+      [0,0],
+      [robot_size * math.sqrt(3)/2, -robot_size/2]
+    ])
 
-    self.p_robot = patches.Circle(t, radius=robot_size, color=self.robot_color, fill=True)
+    self.p_robot = patches.Polygon(t+v @ R.T, color=self.robot_color, fill=True)
     self.p_trail = Line2D(robot_trail[:,0], robot_trail[:,1], color=self.trail_color, linewidth=self.trail_width)
 
   def update_plot(self):
     # update robot
+    robot_size = self.robot_size
     robot_pose = self.robot_pose
-    R = np.array([
+    R = np.array([[0.0, 1.0], [-1.0, 0.0]]) @ np.array([
       [math.cos(robot_pose[2]), -math.sin(robot_pose[2])],
       [math.sin(robot_pose[2]), math.cos(robot_pose[2])]
     ])
-    t = np.array([robot_pose[0], robot_pose[1]])    
-    # xy_robot = t + (np.array([0, self.robot_size[1] / 2.0]) @ R.T)
-    self.p_robot.center = t
+    t = np.array([robot_pose[0], robot_pose[1]])
+    v = np.array([
+      [0, robot_size],
+      [robot_size * -math.sqrt(3)/2 , -robot_size/2],
+      [0,0],
+      [robot_size * math.sqrt(3)/2, -robot_size/2]
+    ])
+    
+    xy_robot = t + (v @ R.T)
+    self.p_robot.xy = xy_robot
 
     # update trail
     self.trail = np.append(self.trail, [robot_pose[:2]], axis=0)
@@ -120,6 +127,8 @@ class Swarm:
     self.plot_voronoi(show_points=False, show_vertices=False)
 
     self.axes.autoscale()
+    self.axes.set_axis_off()
+    self.axes.axis('equal')
     plt.ion()
     # plt.show(block=True)
     plt.show()
@@ -216,14 +225,14 @@ class Swarm:
 
 
 if __name__ == "__main__":
-  robot_1 = Robot( robot_pose=[5, 5, 0.1])
-  robot_2 = Robot( robot_pose=[-5, -5, 0.1])
+  robot_1 = Robot( robot_pose=[5, 5, 1])
+  robot_2 = Robot( robot_pose=[-5, -5, -1])
   robot_3 = Robot( robot_pose=[5, -5, 0.1])
   robot_4 = Robot( robot_pose=[-5, 5, 0.1])
   robots = [robot_1, robot_2, robot_3]
   swarm = Swarm(robots=[robot_1, robot_2, robot_3, robot_4], density=None)
 
   for i in range(100):
-    robot_1.set_mobile_base_speed(v=0.5, w=0)
+    robot_2.set_mobile_base_speed(v=0.5, w=0)
     swarm.update_plot()
     time.sleep(0.1)
