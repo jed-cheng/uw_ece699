@@ -5,6 +5,8 @@ import matplotlib.patches as patches
 from matplotlib.lines import Line2D
 import matplotlib.pyplot as plt
 import numpy as np
+from scipy.spatial import Voronoi, voronoi_plot_2d
+from sympy import symbols, Eq, solve, Point, Line, Segment
 
 # 1. robot
 # 2. trail
@@ -14,7 +16,7 @@ class Robot:
 
   def __init__(self, 
     robot_pose,
-    robot_size = 1.0,
+    robot_size = 0.5,
     robot_color = 'yellow',
     trail = None,
     trail_color = None,
@@ -100,6 +102,9 @@ class Swarm:
     self.density = density
     self.show_voronoi = show_voronoi
     self.show_density = show_density
+    self.fininite_segments_line = None
+    self.infinite_segments_line = None
+
 
     self.__init_plot()
 
@@ -112,13 +117,18 @@ class Swarm:
       self.axes.add_patch(robot.p_robot)
       self.axes.add_line(robot.p_trail)
     
+    self.plot_voronoi(show_points=False, show_vertices=False)
+
     self.axes.autoscale()
     plt.ion()
+    # plt.show(block=True)
     plt.show()
 
   def update_plot(self):
     for robot in self.robots:
       robot.update_plot()
+    
+    self.plot_voronoi(show_points=False, show_vertices=False)
 
     self.figure.canvas.draw_idle()
     self.figure.canvas.flush_events()
@@ -126,8 +136,73 @@ class Swarm:
   def plot_density(self):
     pass
 
-  def plot_voronoi(self):
-    pass
+  def plot_voronoi(self, **kw):
+    ax = self.axes
+    points = np.array([robot.robot_pose[:2] for robot in self.robots])
+    vor = Voronoi(points)
+
+    if self.fininite_segments_line is not None:
+      self.fininite_segments_line.remove()
+    if self.infinite_segments_line is not None:
+      self.infinite_segments_line.remove()
+
+    from matplotlib.collections import LineCollection
+
+    if vor.points.shape[1] != 2:
+        raise ValueError("Voronoi diagram is not 2-D")
+
+    if kw.get('show_points', True):
+        point_size = kw.get('point_size', None)
+        ax.plot(vor.points[:, 0], vor.points[:, 1], '.', markersize=point_size)
+    if kw.get('show_vertices', True):
+        ax.plot(vor.vertices[:, 0], vor.vertices[:, 1], 'o')
+
+    line_colors = kw.get('line_colors', 'k')
+    line_width = kw.get('line_width', 1.0)
+    line_alpha = kw.get('line_alpha', 1.0)
+
+    center = vor.points.mean(axis=0)
+    ptp_bound = np.ptp(vor.points, axis=0)
+
+    finite_segments = []
+    infinite_segments = []
+    for pointidx, simplex in zip(vor.ridge_points, vor.ridge_vertices):
+        simplex = np.asarray(simplex)
+        if np.all(simplex >= 0):
+            finite_segments.append(vor.vertices[simplex])
+        else:
+            i = simplex[simplex >= 0][0]  # finite end Voronoi vertex
+
+            t = vor.points[pointidx[1]] - vor.points[pointidx[0]]  # tangent
+            t /= np.linalg.norm(t)
+            n = np.array([-t[1], t[0]])  # normal
+
+            midpoint = vor.points[pointidx].mean(axis=0)
+            direction = np.sign(np.dot(midpoint - center, n)) * n
+            if (vor.furthest_site):
+                direction = -direction
+            aspect_factor = abs(ptp_bound.max() / ptp_bound.min())
+            far_point = vor.vertices[i] + direction * ptp_bound.max() * aspect_factor
+
+            infinite_segments.append([vor.vertices[i], far_point])
+
+    finite_segments_line = LineCollection(finite_segments, colors=line_colors, lw=line_width, alpha=line_alpha, linestyle='solid')
+    self.fininite_segments_line = finite_segments_line
+    ax.add_collection(finite_segments_line)
+
+    infinite_segments_line = LineCollection(infinite_segments, colors=line_colors, lw=line_width, alpha=line_alpha, linestyle='dashed')
+    self.infinite_segments_line = infinite_segments_line
+    ax.add_collection(infinite_segments_line)
+
+    self._adjust_bounds(ax, vor.points)
+
+
+  def _adjust_bounds(self, ax, points):
+    margin = 0.1 * np.ptp(points, axis=0)
+    xy_min = points.min(axis=0) - margin
+    xy_max = points.max(axis=0) + margin
+    ax.set_xlim(xy_min[0], xy_max[0])
+    ax.set_ylim(xy_min[1], xy_max[1])
 
   def plot_environment(self):
     pass
@@ -140,24 +215,15 @@ class Swarm:
 
 
 
-
-
-
 if __name__ == "__main__":
-  robot = Robot( robot_pose=[0.5, 0.5, 0.1])
-  swarm = Swarm(robots=[robot], density=None)
+  robot_1 = Robot( robot_pose=[5, 5, 0.1])
+  robot_2 = Robot( robot_pose=[-5, -5, 0.1])
+  robot_3 = Robot( robot_pose=[5, -5, 0.1])
+  robot_4 = Robot( robot_pose=[-5, 5, 0.1])
+  robots = [robot_1, robot_2, robot_3]
+  swarm = Swarm(robots=[robot_1, robot_2, robot_3, robot_4], density=None)
 
   for i in range(100):
-    robot.set_mobile_base_speed(v=1, w=0)
+    robot_1.set_mobile_base_speed(v=0.5, w=0)
     swarm.update_plot()
-    print(i)
-    print(robot.get_poses())
     time.sleep(0.1)
-  # import numpy as np
-  # points = np.array([[0, 0], [0, 1], [0, 2], [1, 0], [1, 1], [1, 2],
-  #                   [2, 0], [2, 1], [2, 2]])
-  # from scipy.spatial import Voronoi, voronoi_plot_2d
-  # vor = Voronoi(points)
-  # import matplotlib.pyplot as plt
-  # fig = voronoi_plot_2d(vor)
-  # plt.show()
