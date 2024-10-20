@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.spatial import Delaunay, Voronoi, voronoi_plot_2d
-from converage_control import mirror_robots_about_environment
+from converage_control import mirror_robots_about_environment, DensityFunction
 
 
 def tri_gauss_points(n):
@@ -168,74 +168,26 @@ def voronoi_centroids(
         return G, area
 
 
-class DensityFunction:
-    def __init__(self, type, phi, color):
-        self.type = type   # 'uniform' or 'gaussian'
-        self.phi = phi     # lambda x, y: float
-        self.color = color # hex cmy color value
 
 
 
 if __name__ == '__main__':
   # if only one robot, the voronoi cell is the environment
-    robot_locations = np.array([
-        [0,0],
-        [1,0]
-    ])
-
-    environment = np.array([
-        [2,2],
-        [2,-2],
-        [-2,-2],
-        [-2,2],
-        [2,2]
-    ])
-
-    mirrored_robots = mirror_robots_about_environment(robot_locations, environment)
-    # print(mirrored_robots)
-
-    P = np.concatenate([robot_locations, mirrored_robots])
-    # print(P)
-    vor = Voronoi(P)
 
 
-  # V = vor.vertices
-  # C = vor.regions
-  # vc_p_map = vor.point_region
-  # for i in range(len(C)):
-  #     #  map the index of the voronoi cell to the vertices 
-  #     if not -1 in C[i] and C[i]:
-  #       VC = [V[j] for j in C[i]]
-  #       print(VC)
-  #       print(vc_p_map[i])
-  #       print(P[vc_p_map[i]])
+    # vc = np.array([
+    #     [0, 0],
+    #     [1, 0],
+    #     [1, 1],
+    #     [0, 1]
+    # ])
 
-  # points = np.array([
-  #     [0, 0],
-  #     [1, 0],
-  #     [0, 1],
-  #     [1, 1],
-  #     [2,2]
-  # ])
+    # # gaussian density function mean at (0,0) and variance 1
+    # phi = lambda x, y: np.exp(-0.5 * (x**2 + y**2))/ (2 * np.pi)
+    # density_function = DensityFunction('gaussian',phi, None)
 
+    # G, area = voronoi_centroids(vc, density_function)
 
-  # tri = Delaunay(points)
-  # plt.triplot(points[:,0], points[:,1], tri.simplices)
-  # plt.plot(points[:,0], points[:,1], 'o')
-  # plt.show()
-
-    vc = np.array([
-        [0, 0],
-        [1, 0],
-        [1, 1],
-        [0, 1]
-    ])
-
-    # gaussian density function mean at (0,0) and variance 1
-    phi = lambda x, y: np.exp(-0.5 * (x**2 + y**2))/ (2 * np.pi)
-    density_function = DensityFunction('gaussian',phi, None)
-
-    G, area = voronoi_centroids(vc, density_function)
-
-    print(G)
-    print(area)
+    # print(G)
+    # print(area)
+    pass
