@@ -49,23 +49,23 @@ def converage_control(robot_locations, environment, density_function):
 
   vor = Voronoi(P)
   V = vor.vertices
-  C = np.zeros(Np, dtype=object)
+  vor_cell = np.zeros(Np, dtype=object)
   # find the regions for each robot
   for i in range(Np):
     point_idx = vor.point_region[i]
-    C[i] = vor.regions[point_idx]
+    vor_cell[i] = vor.regions[point_idx]
 
 
-  G = np.zeros((len(C), 2))
-  area = np.zeros(len(C))
+  vor_centroid = np.zeros((len(vor_cell), 2))
+  area = np.zeros(len(vor_cell))
 
-  for i in range(len(C)):
-    VC = V[C[i]]
-    Gi, area_i = voronoi_centroids(VC, density_function)
-    G[i, :] = Gi
+  for i in range(len(vor_cell)):
+    vor_cell[i] = V[vor_cell[i]]
+    Gi, area_i = voronoi_centroids(vor_cell[i], density_function)
+    vor_centroid[i, :] = Gi
     area[i] = np.abs(area_i)
 
-  return G, area
+  return vor_centroid, vor_cell, area 
 
 
 if __name__ == "__main__":
@@ -87,6 +87,7 @@ if __name__ == "__main__":
     phi = lambda x, y: np.exp(-0.5 * (x**2 + y**2))/ (2 * np.pi),
     color=None
   )
-  G, area = converage_control(robot_locations, environment, density_function)
-  print(G)
-  print(area)
+  vor_centroids, vor_cells, areas = converage_control(robot_locations, environment, density_function)
+  print(vor_centroids)
+  print(vor_cells)
+  print(areas)

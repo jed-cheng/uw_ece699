@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.spatial import Delaunay, Voronoi, voronoi_plot_2d
-from converage_control import mirror_robots_about_environment, DensityFunction
+# from converage_control import mirror_robots_about_environment, DensityFunction
 
 
 def tri_gauss_points(n):
