@@ -147,8 +147,6 @@ def voronoi_centroids(
         return G, area
     
     elif density_function.type == 'gaussian':
-        xP = voronoi_cell[:, 0]
-        yP = voronoi_cell[:, 1]
         phiA = lambda x, y: np.maximum(np.finfo(float).eps, density_function.phi(x, y))
         phiSx = lambda x, y: x * density_function.phi(x, y)
         phiSy = lambda x, y: y * density_function.phi(x, y)
@@ -230,9 +228,12 @@ if __name__ == '__main__':
         [0, 0],
         [1, 0],
         [1, 1],
+        [0, 1]
     ])
 
-    density_function = DensityFunction('uniform', None, None)
+    # gaussian density function mean at (0,0) and variance 1
+    phi = lambda x, y: np.exp(-0.5 * (x**2 + y**2))/ (2 * np.pi)
+    density_function = DensityFunction('gaussian',phi, None)
 
     G, area = voronoi_centroids(vc, density_function)
 
