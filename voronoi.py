@@ -97,7 +97,7 @@ def tri_gauss_points(n):
    
 
 
-def integrate_over_triangle(f, tri_coords, N=8):
+def integrate_over_triangle(phi, tri_coords, N=8):
     x1, y1 = tri_coords[0]
     x2, y2 = tri_coords[1]
     x3, y3 = tri_coords[2]
@@ -108,9 +108,12 @@ def integrate_over_triangle(f, tri_coords, N=8):
     for xi, eta, weight in xyw:
         x = x1 * (1 - xi - eta) + x2 * xi + x3 * eta
         y = y1 * (1 - xi - eta) + y2 * xi + y3 * eta
-        integral += f(x, y) * weight
+        integral += phi(x, y) * weight
     integral *= area
     return integral
+
+
+
 
 def triangle_area(triangle):
     x1, y1 = triangle[0]
@@ -122,55 +125,80 @@ def triangle_area(triangle):
 
 def voronoi_centroids(
     voronoi_cell, # array of vertices of voronoi cells
-    phi # density function
+    density_function # density function
 ):
-    xP = voronoi_cell[:, 0]
-    yP = voronoi_cell[:, 1]
-        
-        # Ensure the density function returns at least machine epsilon to avoid zero division
-    phiA = lambda x, y: np.maximum(np.finfo(float).eps, phi(x, y))
-    phiSx = lambda x, y: x * phi(x, y)
-    phiSy = lambda x, y: y * phi(x, y)
-    tri = Delaunay(voronoi_cell)
-    
-    # Triangulate the polygon using scipy's Delaunay triangulation
-    
-    area = 0.0
-    S = np.zeros(2)  # Initialize moment summation for centroid calculation
 
-    # Iterate over each triangle in the triangulation
-    for simplex in tri.simplices:
-        tri_coords = voronoi_cell[simplex]
-        area += integrate_over_triangle(phiA, tri_coords)
-        
-        Sx = integrate_over_triangle(phiSx, tri_coords)
-        Sy = integrate_over_triangle(phiSy, tri_coords)
-        S += np.array([Sx, Sy])
+
+    if density_function.type == 'uniform':
+        n = voronoi_cell.shape[0]
+        M = np.array([[0, 1], [-1, 0]])
+        area = 0.0
+        S = np.zeros(2)
+        for i in range(n):
+            vi = voronoi_cell[i]
+            j = (i + 1) % n
+            vj = voronoi_cell[j]
+            vjr = M @ vj
+            area += vi.T @ vjr
+            S += vi.T @ vjr *  (vi + vj)
+        area /= 2.0
+        S /= 6.0
+        G = S / area
+        return G, area
     
-    G = S / area
-    return G, area
+    elif density_function.type == 'gaussian':
+        xP = voronoi_cell[:, 0]
+        yP = voronoi_cell[:, 1]
+        phiA = lambda x, y: np.maximum(np.finfo(float).eps, density_function.phi(x, y))
+        phiSx = lambda x, y: x * density_function.phi(x, y)
+        phiSy = lambda x, y: y * density_function.phi(x, y)
+        tri = Delaunay(voronoi_cell)
+        
+        
+        area = 0.0
+        S = np.zeros(2)
+
+        for simplex in tri.simplices:
+            tri_coords = voronoi_cell[simplex]
+            area += integrate_over_triangle(phiA, tri_coords)
+            
+            Sx = integrate_over_triangle(phiSx, tri_coords)
+            Sy = integrate_over_triangle(phiSy, tri_coords)
+            S += np.array([Sx, Sy])
+        
+        G = S / area
+        return G, area
+
+
+class DensityFunction:
+    def __init__(self, type, phi, color):
+        self.type = type   # 'uniform' or 'gaussian'
+        self.phi = phi     # lambda x, y: float
+        self.color = color # hex cmy color value
+
+
 
 if __name__ == '__main__':
   # if only one robot, the voronoi cell is the environment
-  robot_locations = np.array([
-    [0,0],
-    [1,0]
-  ])
+    robot_locations = np.array([
+        [0,0],
+        [1,0]
+    ])
 
-  environment = np.array([
-    [2,2],
-    [2,-2],
-    [-2,-2],
-    [-2,2],
-    [2,2]
-  ])
+    environment = np.array([
+        [2,2],
+        [2,-2],
+        [-2,-2],
+        [-2,2],
+        [2,2]
+    ])
 
-  mirrored_robots = mirror_robots_about_environment(robot_locations, environment)
-  # print(mirrored_robots)
+    mirrored_robots = mirror_robots_about_environment(robot_locations, environment)
+    # print(mirrored_robots)
 
-  P = np.concatenate([robot_locations, mirrored_robots])
-  # print(P)
-  vor = Voronoi(P)
+    P = np.concatenate([robot_locations, mirrored_robots])
+    # print(P)
+    vor = Voronoi(P)
 
 
   # V = vor.vertices
@@ -198,16 +226,15 @@ if __name__ == '__main__':
   # plt.plot(points[:,0], points[:,1], 'o')
   # plt.show()
 
-  vc = np.array([
-    [0, 0],
-    [1, 0],
-    [0, 1],
-    [1, 1],
-  ])
-  phi = lambda x, y: 1.0
+    vc = np.array([
+        [0, 0],
+        [1, 0],
+        [1, 1],
+    ])
 
-  G, area = voronoi_centroids(vc, phi)
+    density_function = DensityFunction('uniform', None, None)
 
+    G, area = voronoi_centroids(vc, density_function)
 
-
-  pass
+    print(G)
+    print(area)
