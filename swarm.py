@@ -7,6 +7,7 @@ from converage_control import DensityFunction
 from scipy.spatial import Voronoi
 from voronoi import voronoi_centroids
 from matplotlib.colors import to_rgba
+import random
 
 class Swarm: 
   def __init__(self, 
@@ -94,14 +95,15 @@ class Swarm:
     self.p_vor_cell = []
 
     for robot in self.robots:
-      self.axes.add_patch(robot.p_robot)
       if self.show_trail:
         self.axes.add_line(robot.p_trail)
+      self.axes.add_patch(robot.p_robot)
+
 
 
     self.__plot_environment()
     self.__plot_voronoi()
-    self.__plot_density([-5,5], [-5,5])
+    self.__plot_density([-10,10], [-10,10])
 
     self.axes.autoscale()
     self.axes.axis('equal')
@@ -180,18 +182,31 @@ class Swarm:
 
 
 if __name__ == "__main__":
-  robot_1 = Robot( robot_pose=[5, 5, 1])
-  robot_2 = Robot( robot_pose=[-5, -5, -1])
-  robot_3 = Robot( robot_pose=[5, -5, 0.0])
-  robot_4 = Robot( robot_pose=[-5, 5, 0.0])
-  robots = [robot_1, robot_2, robot_3, robot_4]
+  # robot_1 = Robot( robot_pose=[5, 5, 1])
+  # robot_2 = Robot( robot_pose=[-5, -5, -1])
+  # robot_3 = Robot( robot_pose=[5, -5, 0.0])
+  # robot_4 = Robot( robot_pose=[-5, 5, 0.0])
+  # robots = [robot_1, robot_2, robot_3, robot_4]
+
+  # robots are placed in a meshgrid
+  robots = []
+  for i in range(-5, -3):
+    for j in range(-5, -3):
+      robot = Robot(robot_pose=[i, j, 0])
+      robots.append(robot)
+
 
   density_functions = [
     DensityFunction(
       type='gaussian',
       phi = lambda x, y: np.exp(-0.5 * (x**2 + y**2))/ (2 * np.pi),
       color='#ff7f0e'
-    )
+    ),
+    # DensityFunction(
+    #   type='gaussian',
+    #   phi = lambda x, y: np.exp(-0.5 * ((x-3)**2 + (y-6)**2))/ (2 * np.pi),
+    #   color='#ff7f0e'
+    # ),
   ]
 
   env = np.array([
@@ -202,10 +217,13 @@ if __name__ == "__main__":
     [10, 10]
   ])
 
-  swarm = Swarm(robots, env, density_functions)
 
 
-  for i in range(1000):
+
+  swarm = Swarm(robots, env, density_functions, show_trail=True)
+
+
+  for i in range(500):
     vor_centroid, vor_cell, area = swarm.converage_control()
     for i, robot in enumerate(robots):
       robot.move_to_point(vor_centroid[i])
