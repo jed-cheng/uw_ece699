@@ -5,10 +5,11 @@ from matplotlib.colors import to_rgb
 
 
 class DensityFunction:
-  def __init__(self, type, phi, color):
+  def __init__(self, type, phi, color, center=None):
     self.type = type   # 'uniform' or 'gaussian'
     self.phi = phi     # lambda x, y: float
     self.color = color # hex cmy color value
+    self.center = center
 
 
 '''
