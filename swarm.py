@@ -6,6 +6,7 @@ from robot import Robot
 from converage_control import DensityFunction
 from scipy.spatial import Voronoi
 from voronoi import voronoi_centroids
+from matplotlib.colors import to_rgba
 
 class Swarm: 
   def __init__(self, 
@@ -121,6 +122,7 @@ class Swarm:
 
     self.__plot_environment()
     self.__plot_voronoi()
+    self.__plot_density([-5,5], [-5,5])
 
     self.axes.autoscale()
     self.axes.axis('equal')
@@ -162,24 +164,29 @@ class Swarm:
       self.p_vor_cell.append(p)
       self.axes.add_patch(p)
 
-  # def __plot_density(self, density_functions=None):
-  #   # plot  the current density functions
-  #   for p_density_function in self.p_density_functions:
-  #     p_density_function.remove()
-  #   self.p_density_functions = []
+  def __plot_density(self, xlim, ylim, resolution=100):
+    x = np.linspace(xlim[0], xlim[1], resolution)
+    y = np.linspace(ylim[0], ylim[1], resolution)
+    X, Y = np.meshgrid(x, y)
+    Z = np.zeros(X.shape)
 
-  #   if density_functions is not None:
-  #     self.density_functions = density_functions
-  #   elif self.density_functions is None:
-  #     self.density_functions = []
+    Z = self.density_functions[0].phi(X, Y)
+    Z_norm = Z.reshape(X.shape)
+    base_color = to_rgba(self.density_functions[0].color)
 
-  #   for density_function in self.density_functions:
-  #     self.p_density_functions.append(self.axes.contour(
-  #       density_function.X, 
-  #       density_function.Y, 
-  #       density_function.Z, levels=10, colors=density_function.color))
+    rgba_image = np.zeros((Z.shape[0], Z.shape[1], 4))
+    rgba_image[..., :3] = base_color[:3]
+    alpha_exponent = 0.3
+    rgba_image[...,  3] = Z_norm**alpha_exponent
 
+    im = self.axes.imshow(
+      rgba_image, 
+      extent=[xlim[0], xlim[1], ylim[0], ylim[1]],
+      origin='lower',
+      aspect='auto'
+    )
 
+    self.im = im
 
 
   def plot_environment(self):
@@ -203,8 +210,8 @@ if __name__ == "__main__":
   density_functions = [
     DensityFunction(
       type='gaussian',
-      phi = lambda x, y: np.exp(-0.5 * ((x-5)**2 + (y-5)**2))/ (2 * np.pi),
-      color=None
+      phi = lambda x, y: np.exp(-0.5 * (x**2 + y**2))/ (2 * np.pi),
+      color='#ff7f0e'
     )
   ]
 

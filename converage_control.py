@@ -1,13 +1,14 @@
 import numpy as np
 from scipy.spatial import Voronoi, voronoi_plot_2d
 from voronoi import voronoi_centroids
+from matplotlib.colors import to_rgb
 
 
 class DensityFunction:
-    def __init__(self, type, phi, color):
-        self.type = type   # 'uniform' or 'gaussian'
-        self.phi = phi     # lambda x, y: float
-        self.color = color # hex cmy color value
+  def __init__(self, type, phi, color):
+    self.type = type   # 'uniform' or 'gaussian'
+    self.phi = phi     # lambda x, y: float
+    self.color = color # hex cmy color value
 
 
 '''
