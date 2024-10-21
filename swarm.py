@@ -59,27 +59,6 @@ class Swarm:
     return mirrored_robots
 
 
-  def get_voronoi_cell(self):
-    robot_locations = self.get_robot_locations()
-    Np = robot_locations.shape[0]
-
-    mirrored_robots =self.mirror_robots_about_environment()
-    P = np.concatenate([robot_locations, mirrored_robots])
-
-    vor = Voronoi(P)
-    vor_cell = np.zeros(Np, dtype=object)
-    V = vor.vertices
-    
-    for i in range(Np):
-      point_idx = vor.point_region[i]
-      vor_cell[i] = vor.regions[point_idx]
-
-    for i in range(len(vor_cell)):
-      vor_cell[i] = V[vor_cell[i]]
-
-    return vor_cell
-
-
 
   def converage_control(self):
     robot_locations = self.get_robot_locations()
