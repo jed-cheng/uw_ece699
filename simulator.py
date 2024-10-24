@@ -15,11 +15,6 @@ class Simulator:
     self.swarm = swarm
     self.environment = environment
 
-    self.robot_color = kwargs.get('robot_color', 'black')
-    self.robot_size = kwargs.get('robot_size', 0.5)
-    self.trail_color = kwargs.get('trail_color', 'black')
-    self.trail_width = kwargs.get('trail_width', 5)
-
     self.figure, self.axes = plt.subplots()
     self.p_env = None
     self.p_density = None
@@ -103,8 +98,8 @@ class Simulator:
         [size * math.sqrt(3)/2, -size/2]
       ])
 
-      p_robot = patches.Polygon(t+v @ R.T, color=self.robot_color, fill=True)
-      p_trail = Line2D(trail[:,0], trail[:,1], color=self.trail_color, linewidth=self.trail_width)
+      p_robot = patches.Polygon(t+v @ R.T, color=robot.robot_color, fill=True)
+      p_trail = Line2D(trail[:,0], trail[:,1], color=robot.trail_color, linewidth=robot.trail_width)
 
       self.p_robots.append(p_robot)
       self.p_trails.append(p_trail)
@@ -147,10 +142,10 @@ class Simulator:
 
 if __name__ == "__main__":
   robots = [
-    Robot(robot_pose=[5, 5, 1]),
-    Robot(robot_pose=[-5, -5, -1]),
-    Robot(robot_pose=[5, -5, 0.0]),
-    Robot(robot_pose=[-5, 5, 0.0])
+    Robot(robot_pose=[5, 5, 1], equiped_color=[]),
+    Robot(robot_pose=[-5, -5, -1],equiped_color=[]),
+    Robot(robot_pose=[5, -5, 0.0],equiped_color=[]),
+    Robot(robot_pose=[-5, 5, 0.0],equiped_color=[])
   ]
 
   env = np.array([
