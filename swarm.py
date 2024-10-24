@@ -89,92 +89,86 @@ class Swarm:
 
     return vor_centroid, vor_cell, area 
 
-  def __init_plot(self):
-    self.figure, self.axes = plt.subplots()
-    self.p_vor_centroid = []
-    self.p_vor_cell = []
+  # def __init_plot(self):
+  #   self.figure, self.axes = plt.subplots()
+  #   self.p_vor_centroid = []
+  #   self.p_vor_cell = []
 
-    for robot in self.robots:
-      if self.show_trail:
-        self.axes.add_line(robot.p_trail)
-      self.axes.add_patch(robot.p_robot)
+  #   for robot in self.robots:
+  #     if self.show_trail:
+  #       self.axes.add_line(robot.p_trail)
+  #     self.axes.add_patch(robot.p_robot)
 
 
 
-    self.__plot_environment()
-    self.__plot_voronoi()
-    self.__plot_density([-10,10], [-10,10])
+  #   self.__plot_environment()
+  #   self.__plot_voronoi()
+  #   self.__plot_density([-10,10], [-10,10])
 
-    self.axes.autoscale()
-    self.axes.axis('equal')
-    plt.ion()
-    # plt.show(block=True)
-    plt.show()
+  #   self.axes.autoscale()
+  #   self.axes.axis('equal')
+  #   plt.ion()
+  #   # plt.show(block=True)
+  #   plt.show()
 
-  def update_plot(self):
-    for robot in self.robots:
-      robot.update_plot()
+  # def update_plot(self):
+  #   for robot in self.robots:
+  #     robot.update_plot()
     
-    self.__plot_voronoi()
+  #   self.__plot_voronoi()
 
-    self.figure.canvas.draw_idle()
-    self.figure.canvas.flush_events()
+  #   self.figure.canvas.draw_idle()
+  #   self.figure.canvas.flush_events()
 
-  def __plot_environment(self):
-    p_env = patches.Polygon(self.environment, fill=False)
-    self.axes.add_patch(p_env)
+  # def __plot_environment(self):
+  #   p_env = patches.Polygon(self.environment, fill=False)
+  #   self.axes.add_patch(p_env)
 
-  def __plot_voronoi(self):
-    vor_centroid, vor_cell, area = self.converage_control()
+  # def __plot_voronoi(self):
+  #   vor_centroid, vor_cell, area = self.converage_control()
     
-    for p_vor_centroid in self.p_vor_centroid:
-      p_vor_centroid.remove()
-    for p_vor_cell in self.p_vor_cell:
-      p_vor_cell.remove()
+  #   for p_vor_centroid in self.p_vor_centroid:
+  #     p_vor_centroid.remove()
+  #   for p_vor_cell in self.p_vor_cell:
+  #     p_vor_cell.remove()
 
-    self.p_vor_centroid = []
-    self.p_vor_cell = []
+  #   self.p_vor_centroid = []
+  #   self.p_vor_cell = []
 
-    for centroid in vor_centroid:
-      p = patches.Circle(centroid, radius=0.1, fill=True)
-      self.p_vor_centroid.append(p)
-      self.axes.add_patch(p)
+  #   for centroid in vor_centroid:
+  #     p = patches.Circle(centroid, radius=0.1, fill=True)
+  #     self.p_vor_centroid.append(p)
+  #     self.axes.add_patch(p)
 
-    for cell in vor_cell:
-      p = patches.Polygon(cell, fill=False, closed=True)
-      self.p_vor_cell.append(p)
-      self.axes.add_patch(p)
+  #   for cell in vor_cell:
+  #     p = patches.Polygon(cell, fill=False, closed=True)
+  #     self.p_vor_cell.append(p)
+  #     self.axes.add_patch(p)
 
-  def __plot_density(self, xlim, ylim, resolution=100):
-    x = np.linspace(xlim[0], xlim[1], resolution)
-    y = np.linspace(ylim[0], ylim[1], resolution)
-    X, Y = np.meshgrid(x, y)
-    Z = np.zeros(X.shape)
+  # def __plot_density(self, xlim, ylim, resolution=100):
+  #   x = np.linspace(xlim[0], xlim[1], resolution)
+  #   y = np.linspace(ylim[0], ylim[1], resolution)
+  #   X, Y = np.meshgrid(x, y)
+  #   Z = np.zeros(X.shape)
 
-    Z = self.density_functions[0].phi(X, Y)
-    Z_norm = Z.reshape(X.shape)
-    base_color = to_rgba(self.density_functions[0].color)
+  #   Z = self.density_functions[0].phi(X, Y)
+  #   Z_norm = Z.reshape(X.shape)
+  #   base_color = to_rgba(self.density_functions[0].color)
 
-    rgba_image = np.zeros((Z.shape[0], Z.shape[1], 4))
-    rgba_image[..., :3] = base_color[:3]
-    alpha_exponent = 0.3
-    rgba_image[...,  3] = Z_norm**alpha_exponent
+  #   rgba_image = np.zeros((Z.shape[0], Z.shape[1], 4))
+  #   rgba_image[..., :3] = base_color[:3]
+  #   alpha_exponent = 0.3
+  #   rgba_image[...,  3] = Z_norm**alpha_exponent
 
-    im = self.axes.imshow(
-      rgba_image, 
-      extent=[xlim[0], xlim[1], ylim[0], ylim[1]],
-      origin='lower',
-      aspect='auto'
-    )
+  #   im = self.axes.imshow(
+  #     rgba_image, 
+  #     extent=[xlim[0], xlim[1], ylim[0], ylim[1]],
+  #     origin='lower',
+  #     aspect='auto'
+  #   )
 
-    self.im = im
+  #   self.im = im
 
-
-  def plot_environment(self):
-    pass
-
-  def plot_robots(self):
-    pass
 
 
 

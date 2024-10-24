@@ -24,6 +24,8 @@ class Simulator:
     self.p_env = None
     self.p_density = None
     self.p_robots = None
+    self.p_vor_centroid = None
+    self.p_vor_cell = None
 
 
 
@@ -104,8 +106,27 @@ class Simulator:
       self.axes.add_patch(p_robot)
       self.axes.add_line(p_trail)
 
-  def plot_voronoi(self):
-    pass
+  def plot_voronoi(self, vor_centroid, vor_cell):
+
+    if self.p_vor_centroid:
+      for p_vor_centroid in self.p_vor_centroid:
+        p_vor_centroid.remove()
+    if self.p_vor_cell:
+      for p_vor_cell in self.p_vor_cell:
+        p_vor_cell.remove()
+
+    self.p_vor_centroid = []
+    self.p_vor_cell = []
+
+    for centroid in vor_centroid:
+      p = patches.Circle(centroid, radius=0.1, fill=True)
+      self.p_vor_centroid.append(p)
+      self.axes.add_patch(p)
+
+    for cell in vor_cell:
+      p = patches.Polygon(cell, fill=False, closed=True)
+      self.p_vor_cell.append(p)
+      self.axes.add_patch(p)
 
   def plot(self):
     self.axes.autoscale()
@@ -137,6 +158,12 @@ if __name__ == "__main__":
       phi = lambda x, y: np.exp(-0.5 * (x**2 + y**2))/ (2 * np.pi),
       color='#ff7f0e',
       center=[0, 0]
+    ),
+    DensityFunction(
+      type='gaussian',
+      phi = lambda x, y: np.exp(-0.5 * ((x-5)**2 + (y-5)**2))/ (2 * np.pi),
+      color='#1f77b4',
+      center=[5, 5]
     )
   ]
 
@@ -146,6 +173,8 @@ if __name__ == "__main__":
   sim.plot_environment(env)
   sim.plot_swarm(swarm)
   sim.plot_density_functions(density_functions)
+  vor_centroid, vor_cell, _ = swarm.converage_control()
+  sim.plot_voronoi(vor_centroid, vor_cell)
   sim.plot()
   # for i in range(100):
   #   time.sleep(0.1)

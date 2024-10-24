@@ -60,47 +60,47 @@ class Robot:
     self.set_mobile_base_speed(vw[0], vw[1])
 
 
-  def __init_plot(self):
-    robot_pose = self.robot_pose
-    robot_size = self.robot_size
-    robot_trail = self.trail
-    R = np.array([[0.0, 1.0], [-1.0, 0.0]]) @ np.array([
-      [math.cos(robot_pose[2]), -math.sin(robot_pose[2])],
-      [math.sin(robot_pose[2]), math.cos(robot_pose[2])]
-    ])
-    t = np.array([robot_pose[0], robot_pose[1]])
-    v = np.array([
-      [0, robot_size],
-      [robot_size * -math.sqrt(3)/2 , -robot_size/2],
-      [0,0],
-      [robot_size * math.sqrt(3)/2, -robot_size/2]
-    ])
+  # def __init_plot(self):
+  #   robot_pose = self.robot_pose
+  #   robot_size = self.robot_size
+  #   robot_trail = self.trail
+  #   R = np.array([[0.0, 1.0], [-1.0, 0.0]]) @ np.array([
+  #     [math.cos(robot_pose[2]), -math.sin(robot_pose[2])],
+  #     [math.sin(robot_pose[2]), math.cos(robot_pose[2])]
+  #   ])
+  #   t = np.array([robot_pose[0], robot_pose[1]])
+  #   v = np.array([
+  #     [0, robot_size],
+  #     [robot_size * -math.sqrt(3)/2 , -robot_size/2],
+  #     [0,0],
+  #     [robot_size * math.sqrt(3)/2, -robot_size/2]
+  #   ])
 
-    self.p_robot = patches.Polygon(t+v @ R.T, color=self.robot_color, fill=True)
-    self.p_trail = Line2D(robot_trail[:,0], robot_trail[:,1], color=self.trail_color, linewidth=self.trail_width)
+  #   self.p_robot = patches.Polygon(t+v @ R.T, color=self.robot_color, fill=True)
+  #   self.p_trail = Line2D(robot_trail[:,0], robot_trail[:,1], color=self.trail_color, linewidth=self.trail_width)
 
-  def update_plot(self):
-    # update robot
-    robot_size = self.robot_size
-    robot_pose = self.robot_pose
-    R = np.array([[0.0, 1.0], [-1.0, 0.0]]) @ np.array([
-      [math.cos(robot_pose[2]), -math.sin(robot_pose[2])],
-      [math.sin(robot_pose[2]), math.cos(robot_pose[2])]
-    ])
-    t = np.array([robot_pose[0], robot_pose[1]])
-    v = np.array([
-      [0, robot_size],
-      [robot_size * -math.sqrt(3)/2 , -robot_size/2],
-      [0,0],
-      [robot_size * math.sqrt(3)/2, -robot_size/2]
-    ])
+  # def update_plot(self):
+  #   # update robot
+  #   robot_size = self.robot_size
+  #   robot_pose = self.robot_pose
+  #   R = np.array([[0.0, 1.0], [-1.0, 0.0]]) @ np.array([
+  #     [math.cos(robot_pose[2]), -math.sin(robot_pose[2])],
+  #     [math.sin(robot_pose[2]), math.cos(robot_pose[2])]
+  #   ])
+  #   t = np.array([robot_pose[0], robot_pose[1]])
+  #   v = np.array([
+  #     [0, robot_size],
+  #     [robot_size * -math.sqrt(3)/2 , -robot_size/2],
+  #     [0,0],
+  #     [robot_size * math.sqrt(3)/2, -robot_size/2]
+  #   ])
     
-    xy_robot = t + (v @ R.T)
-    self.p_robot.xy = xy_robot
+  #   xy_robot = t + (v @ R.T)
+  #   self.p_robot.xy = xy_robot
 
-    # update trail
-    self.trail = np.append(self.trail, [robot_pose[:2]], axis=0)
-    self.p_trail.set_data(self.trail[:,0], self.trail[:,1])
+  #   # update trail
+  #   self.trail = np.append(self.trail, [robot_pose[:2]], axis=0)
+  #   self.p_trail.set_data(self.trail[:,0], self.trail[:,1])
 
 
 if __name__ == '__main__':
