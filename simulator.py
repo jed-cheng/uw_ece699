@@ -25,8 +25,7 @@ class Simulator:
     self.p_density = None
     self.p_robots = None
 
-    self.axes.autoscale()
-    self.axes.set_aspect('equal')
+
 
     # plt.ion()
     # plt.show(block=True)
@@ -51,22 +50,20 @@ class Simulator:
 
     self.p_density = []
     for density_function in density_functions:
-      xmin = density_function.center[0] - range
-      xmax = density_function.center[0] + range
-      ymin = density_function.center[1] - range
-      ymax = density_function.center[1] + range
+      xmin, xmax = density_function.center[0] - range, density_function.center[0] + range
+      ymin, ymax  = density_function.center[1] - range, density_function.center[1] + range
+
       x = np.linspace(xmin, xmax, resolution)
       y = np.linspace(ymin, ymax, resolution)
       X, Y = np.meshgrid(x, y)
-      Z = np.zeros(X.shape)
-      Z_norm = np.zeros(X.shape)
 
       Z = density_function.phi(X, Y)
+      Z_norm = Z.reshape(X.shape)
       base_color = to_rgba(density_function.color)   
 
       rgba_image = np.zeros((Z.shape[0], Z.shape[1], 4))
       rgba_image[..., :3] = base_color[:3]
-      alpha_exponent = 0.5
+      alpha_exponent = 0.3
       rgba_image[...,  3] = Z_norm**alpha_exponent         
       p = self.axes.imshow(
         rgba_image, 
@@ -111,6 +108,8 @@ class Simulator:
     pass
 
   def plot(self):
+    self.axes.autoscale()
+    self.axes.set_aspect('equal')
     # self.figure.canvas.draw_idle()
     # self.figure.canvas.flush_events()
     plt.show()

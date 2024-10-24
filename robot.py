@@ -31,7 +31,7 @@ class Robot:
     self.K = K
 
     # initialize robot
-    self.__init_plot()
+    # self.__init_plot()
     self.last_time_set_mobile_base_speed = int(round(time.time()*1000))
     self.last_time_get_poses = int(round(time.time()*1000))
 

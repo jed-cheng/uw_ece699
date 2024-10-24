@@ -27,7 +27,7 @@ class Swarm:
 
 
 
-    self.__init_plot()
+    # self.__init_plot()
 
   def get_robot_locations(self):
     return np.array([robot.robot_pose[:2] for robot in self.robots])
