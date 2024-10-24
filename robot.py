@@ -54,17 +54,31 @@ class Robot:
     return self.robot_pose
   
   def move_to_point(self, point):
-    v = self.K * (point - self.robot_pose[:2])
+    u = self.K * (point - self.robot_pose[:2])
     R = np.array([
       [math.cos(self.robot_pose[2]), math.sin(self.robot_pose[2])],
       [-math.sin(self.robot_pose[2]), math.cos(self.robot_pose[2])]
     ])
-    vw = np.array([[1,0], [0,1]]) @ R @ v
+    vw = np.array([[1,0], [0,1]]) @ R @ u
+
+    self.set_mobile_base_speed(vw[0], vw[1])
+
+
+  def coverage_control(self, vor_centroid, vor_area):
+    u = np.zeros(2)
+    for centroid, area in zip(vor_centroid, vor_area):
+      u += (centroid - self.robot_pose[:2]) * area
+    R = np.array([
+      [math.cos(self.robot_pose[2]), math.sin(self.robot_pose[2])],
+      [-math.sin(self.robot_pose[2]), math.cos(self.robot_pose[2])]
+    ])
+    vw = np.array([[1,0], [0,1]]) @ R @ u
 
     self.set_mobile_base_speed(vw[0], vw[1])
 
   def set_trail_color(self, color):
     self.trail_color = color
+
 
 
 if __name__ == '__main__':

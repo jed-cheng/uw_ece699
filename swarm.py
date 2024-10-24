@@ -35,8 +35,8 @@ class Swarm:
     return np.array([robot.robot_pose[:2] for robot in self.robots])
 
 
-  def mirror_robots_about_environment(self):
-    robot_locations = self.get_robot_locations()
+  def mirror_robots_about_environment(self, robots):
+    robot_locations = [robot.robot_pose[:2] for robot in robots]
     environment = self.environment
 
     num_robots = robot_locations.shape[0]
@@ -62,7 +62,7 @@ class Swarm:
     return mirrored_robots
 
 
-  def get_cym_density_functions(self):
+  def get_prime_density_functions(self):
     C_density_function =  []
     M_density_functions = []
     Y_density_functions = []
@@ -94,12 +94,35 @@ class Swarm:
     return C_density_function, M_density_function, Y_density_function
 
 
-
-  def converage_control(self):
+  def color_coverage_control(self):
     robot_locations = self.get_robot_locations()
-    density_function = self.density_functions[0]
-    for density_function in self.density_functions:
-      c, m, y = hex_to_cmy(density_function.color)
+    cphi, mphi, yphi = self.get_prime_density_functions()
+
+    store = {
+      'c': [],
+      'm': [],
+      'y': []
+    }
+    for phi in [cphi, mphi, yphi]:
+      robots_with_color = [robot for robot in self.robots if phi.color in robot.equiped_color]
+      vor_centroid, vor_cell, vor_area = self.converage_control(robots_with_color, phi )
+      store[phi.color].append(( robots_with_color, vor_centroid, vor_cell, vor_area))
+    for robot in self.robots:
+      vor_centroid, vor_area = [], []
+      for color in ['c', 'm', 'y']:
+        if color not in robot.equiped_color:
+          continue
+
+        idx = [i for i, (robots, _, _, _) in enumerate(store[color]) if robot in robots][0]
+        vor_centroid.append(store['c'][idx][1])
+        vor_area.append(store['c'][idx][3])
+
+      robot.coverage_control(vor_centroid, vor_area)
+
+        
+
+  def converage_control(self, robots, density_function):
+    robot_locations = [robot.robot_pose[:2] for robot in robots]
     Np = robot_locations.shape[0]
 
     mirrored_robots =self.mirror_robots_about_environment()
@@ -115,15 +138,15 @@ class Swarm:
 
 
     vor_centroid = np.zeros((len(vor_cell), 2))
-    area = np.zeros(len(vor_cell))
+    vor_area = np.zeros(len(vor_cell))
 
     for i in range(len(vor_cell)):
       vor_cell[i] = V[vor_cell[i]]
       Gi, area_i = voronoi_centroids(vor_cell[i], density_function)
       vor_centroid[i, :] = Gi
-      area[i] = np.abs(area_i)
+      vor_area[i] = np.abs(area_i)
 
-    return vor_centroid, vor_cell, area 
+    return vor_centroid, vor_cell, vor_area 
 
 
 
