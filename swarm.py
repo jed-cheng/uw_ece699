@@ -6,13 +6,17 @@ from robot import Robot
 from converage_control import DensityFunction
 from scipy.spatial import Voronoi
 from voronoi import voronoi_centroids
-from matplotlib.colors import hex2color
+from matplotlib.colors import hex2color, to_hex
 import random
 
-
+# rgb hex to cmy
 def hex_to_cmy(color):
   rgb = np.array(hex2color(color))
   return 1 - rgb
+
+def cmy_to_hex(cmy):
+  rgb = 1 - cmy
+  return to_hex(rgb)
 
 class Swarm: 
   def __init__(self, 
@@ -58,11 +62,28 @@ class Swarm:
     return mirrored_robots
 
 
+  def color_coverage_control(self):
+    C_density_function =  []
+    M_density_functions = []
+    Y_density_functions = []
+
+    for density_function in self.density_functions:
+      c, m, y = hex_to_cmy(density_function.color)
+      C_density_function.append((c, density_function))
+      M_density_functions.append((m, density_function))
+      Y_density_functions.append((y, density_function))
+
+    C_density_function = DensityFunction(
+      type='gaussian',
+      phi=lambda x, y: max([c * density_function.phi(x, y) for c, density_function in C_density_function]),
+      color=''
+    )
+
+
 
   def converage_control(self):
     robot_locations = self.get_robot_locations()
-    # density_function = self.density_functions[0]
-    C_density_functions 
+    density_function = self.density_functions[0]
     for density_function in self.density_functions:
       c, m, y = hex_to_cmy(density_function.color)
     Np = robot_locations.shape[0]
@@ -98,51 +119,53 @@ class Swarm:
 
 
 if __name__ == "__main__":
-  robot_1 = Robot( robot_pose=[5, 5, 1])
-  robot_2 = Robot( robot_pose=[-5, -5, -1])
-  robot_3 = Robot( robot_pose=[5, -5, 0.0])
-  robot_4 = Robot( robot_pose=[-5, 5, 0.0])
-  robots = [robot_1, robot_2, robot_3, robot_4]
+  # robot_1 = Robot( robot_pose=[5, 5, 1])
+  # robot_2 = Robot( robot_pose=[-5, -5, -1])
+  # robot_3 = Robot( robot_pose=[5, -5, 0.0])
+  # robot_4 = Robot( robot_pose=[-5, 5, 0.0])
+  # robots = [robot_1, robot_2, robot_3, robot_4]
 
-  robots = []
-  for i in range(-5, -3):
-    for j in range(-5, -3):
-      robot = Robot(robot_pose=[i, j, 0])
-      robots.append(robot)
-
-
-  density_functions = [
-    DensityFunction(
-      type='gaussian',
-      phi = lambda x, y: np.exp(-0.5 * (x**2 + y**2))/ (2 * np.pi),
-      color='#ff7f0e'
-    ),
-    # DensityFunction(
-    #   type='gaussian',
-    #   phi = lambda x, y: np.exp(-0.5 * ((x-3)**2 + (y-6)**2))/ (2 * np.pi),
-    #   color='#ff7f0e'
-    # ),
-  ]
-
-  env = np.array([
-    [10, 10],
-    [10, -10],
-    [-10, -10],
-    [-10, 10],
-    [10, 10]
-  ])
+  # robots = []
+  # for i in range(-5, -3):
+  #   for j in range(-5, -3):
+  #     robot = Robot(robot_pose=[i, j, 0])
+  #     robots.append(robot)
 
 
+  # density_functions = [
+  #   DensityFunction(
+  #     type='gaussian',
+  #     phi = lambda x, y: np.exp(-0.5 * (x**2 + y**2))/ (2 * np.pi),
+  #     color='#ff7f0e'
+  #   ),
+  #   # DensityFunction(
+  #   #   type='gaussian',
+  #   #   phi = lambda x, y: np.exp(-0.5 * ((x-3)**2 + (y-6)**2))/ (2 * np.pi),
+  #   #   color='#ff7f0e'
+  #   # ),
+  # ]
+
+  # env = np.array([
+  #   [10, 10],
+  #   [10, -10],
+  #   [-10, -10],
+  #   [-10, 10],
+  #   [10, 10]
+  # ])
 
 
-  swarm = Swarm(robots, env, density_functions)
 
 
-  for i in range(500):
-    vor_centroid, vor_cell, area = swarm.converage_control()
-    for i, robot in enumerate(robots):
-      robot.move_to_point(vor_centroid[i])
+  # swarm = Swarm(robots, env, density_functions)
 
-    swarm.update_plot()
-    time.sleep(0.001)
 
+  # for i in range(500):
+  #   vor_centroid, vor_cell, area = swarm.converage_control()
+  #   for i, robot in enumerate(robots):
+  #     robot.move_to_point(vor_centroid[i])
+
+  #   swarm.update_plot()
+  #   time.sleep(0.001)
+  pass
+
+ 
