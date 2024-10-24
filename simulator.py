@@ -24,6 +24,7 @@ class Simulator:
     self.p_env = None
     self.p_density = None
     self.p_robots = None
+    self.p_trails = None
     self.p_vor_centroid = None
     self.p_vor_cell = None
 
@@ -80,7 +81,12 @@ class Simulator:
       for p in self.p_robots:
         p.remove()
 
+    if self.p_trails:
+      for p in self.p_trails:
+        p.remove()
+
     self.p_robots = []
+    self.p_trails = []
     for robot in swarm.robots:
       pose = robot.robot_pose
       size = robot.robot_size
@@ -101,10 +107,11 @@ class Simulator:
       p_trail = Line2D(trail[:,0], trail[:,1], color=self.trail_color, linewidth=self.trail_width)
 
       self.p_robots.append(p_robot)
-      self.p_robots.append(p_trail)
+      self.p_trails.append(p_trail)
 
       self.axes.add_patch(p_robot)
       self.axes.add_line(p_trail)
+
 
   def plot_voronoi(self, vor_centroid, vor_cell):
 
@@ -131,10 +138,12 @@ class Simulator:
   def plot(self):
     self.axes.autoscale()
     self.axes.set_aspect('equal')
-    # self.figure.canvas.draw_idle()
-    # self.figure.canvas.flush_events()
+    plt.ion()
     plt.show()
 
+  def update_plot(self):
+    self.figure.canvas.draw_idle()
+    self.figure.canvas.flush_events()
 
 if __name__ == "__main__":
   robots = [
@@ -159,24 +168,35 @@ if __name__ == "__main__":
       color='#ff7f0e',
       center=[0, 0]
     ),
-    DensityFunction(
-      type='gaussian',
-      phi = lambda x, y: np.exp(-0.5 * ((x-5)**2 + (y-5)**2))/ (2 * np.pi),
-      color='#1f77b4',
-      center=[5, 5]
-    )
+    # DensityFunction(
+    #   type='gaussian',
+    #   phi = lambda x, y: np.exp(-0.5 * ((x-5)**2 + (y-5)**2))/ (2 * np.pi),
+    #   color='#1f77b4',
+    #   center=[5, 5]
+    # )
   ]
 
   swarm = Swarm(robots, env, density_functions)
 
   sim = Simulator(swarm, env)
-  sim.plot_environment(env)
-  sim.plot_swarm(swarm)
-  sim.plot_density_functions(density_functions)
   vor_centroid, vor_cell, _ = swarm.converage_control()
+  sim.plot_environment(env)
+  sim.plot_density_functions(density_functions)
+  sim.plot_swarm(swarm)
   sim.plot_voronoi(vor_centroid, vor_cell)
   sim.plot()
   # for i in range(100):
   #   time.sleep(0.1)
-  
+  for i in range(500):
+    vor_centroid, vor_cell, _ = swarm.converage_control()
+    for i, robot in enumerate(robots):
+      robot.move_to_point(vor_centroid[i])
+    sim.plot_swarm(swarm)
+    sim.plot_voronoi(vor_centroid, vor_cell)
+
+    sim.update_plot()
+    time.sleep(0.01)
+
+
+
   pass

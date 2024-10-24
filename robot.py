@@ -42,6 +42,7 @@ class Robot:
       self.robot_pose[1] = self.robot_pose[1] + (v * math.sin(self.robot_pose[2])) * delta_time_set_mobile_base_speed / 1000.0
       self.robot_pose[2] = self.robot_pose[2] + w * delta_time_set_mobile_base_speed / 1000.0
       self.last_time_set_mobile_base_speed = int(round(time.time()*1000))
+      self.trail = np.append(self.trail, [self.robot_pose[:2]], axis=0)
 
   def get_poses(self):
     while int(round(time.time()*1000)) - self.last_time_get_poses < self.TIMEOUT_GET_POSES:
