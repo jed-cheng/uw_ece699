@@ -62,7 +62,7 @@ class Swarm:
     return mirrored_robots
 
 
-  def color_coverage_control(self):
+  def get_cym_density_functions(self):
     C_density_function =  []
     M_density_functions = []
     Y_density_functions = []
@@ -76,8 +76,22 @@ class Swarm:
     C_density_function = DensityFunction(
       type='gaussian',
       phi=lambda x, y: max([c * density_function.phi(x, y) for c, density_function in C_density_function]),
-      color=''
+      color=cmy_to_hex([1, 0, 0])
     )
+
+    M_density_function = DensityFunction(
+      type='gaussian',
+      phi=lambda x, y: max([m * density_function.phi(x, y) for m, density_function in M_density_functions]),
+      color=cmy_to_hex([0, 1, 0])
+    )
+
+    Y_density_function = DensityFunction(
+      type='gaussian',
+      phi=lambda x, y: max([y * density_function.phi(x, y) for y, density_function in Y_density_functions]),
+      color=cmy_to_hex([0, 0, 1])
+    )
+
+    return C_density_function, M_density_function, Y_density_function
 
 
 
