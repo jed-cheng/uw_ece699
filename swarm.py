@@ -6,8 +6,13 @@ from robot import Robot
 from converage_control import DensityFunction
 from scipy.spatial import Voronoi
 from voronoi import voronoi_centroids
-from matplotlib.colors import to_rgba
+from matplotlib.colors import hex2color
 import random
+
+
+def hex_to_cmy(color):
+  rgb = np.array(hex2color(color))
+  return 1 - rgb
 
 class Swarm: 
   def __init__(self, 
@@ -56,7 +61,10 @@ class Swarm:
 
   def converage_control(self):
     robot_locations = self.get_robot_locations()
-    density_function = self.density_functions[0]
+    # density_function = self.density_functions[0]
+    C_density_functions 
+    for density_function in self.density_functions:
+      c, m, y = hex_to_cmy(density_function.color)
     Np = robot_locations.shape[0]
 
     mirrored_robots =self.mirror_robots_about_environment()
@@ -90,13 +98,12 @@ class Swarm:
 
 
 if __name__ == "__main__":
-  # robot_1 = Robot( robot_pose=[5, 5, 1])
-  # robot_2 = Robot( robot_pose=[-5, -5, -1])
-  # robot_3 = Robot( robot_pose=[5, -5, 0.0])
-  # robot_4 = Robot( robot_pose=[-5, 5, 0.0])
-  # robots = [robot_1, robot_2, robot_3, robot_4]
+  robot_1 = Robot( robot_pose=[5, 5, 1])
+  robot_2 = Robot( robot_pose=[-5, -5, -1])
+  robot_3 = Robot( robot_pose=[5, -5, 0.0])
+  robot_4 = Robot( robot_pose=[-5, 5, 0.0])
+  robots = [robot_1, robot_2, robot_3, robot_4]
 
-  # robots are placed in a meshgrid
   robots = []
   for i in range(-5, -3):
     for j in range(-5, -3):
@@ -138,3 +145,4 @@ if __name__ == "__main__":
 
     swarm.update_plot()
     time.sleep(0.001)
+
