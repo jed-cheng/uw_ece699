@@ -18,11 +18,11 @@ class Simulator:
 
     self.figure, self.axes = plt.subplots()
     self.p_env = None
-    self.p_density = None
+    self.p_density = []
     self.p_robots = None
     self.p_trails = None
-    self.p_vor_centroid = None
-    self.p_vor_cell = None
+    self.p_vor_centroid = []
+    self.p_vor_cell = []
 
 
 
@@ -42,12 +42,19 @@ class Simulator:
 
 
 
-  def plot_density_functions(self, density_functions, range=5, resolution=100, refresh=True):
-    if self.p_density:
+  def plot_density_functions(self, 
+    density_functions, 
+    range=5, 
+    resolution=100, 
+    refresh=True,
+
+  ):
+    if refresh:
       for p in self.p_density:
         p.remove()
+      self.p_density = []
 
-    self.p_density = []
+    
     for density_function in density_functions:
       xmin, xmax = density_function.center[0] - range, density_function.center[0] + range
       ymin, ymax  = density_function.center[1] - range, density_function.center[1] + range
@@ -109,20 +116,17 @@ class Simulator:
       self.axes.add_line(p_trail)
 
 
-  def plot_voronoi(self, vor_centroid, vor_cell, update=True):
+  def plot_voronoi(self, vor_centroid, vor_cell, 
+    refresh=True,
+    centroid_color='black',
+    centroid_size=0.2
+  ):
 
-    if update:
-      if self.p_vor_centroid:
-        for p_vor_centroid in self.p_vor_centroid:
-          p_vor_centroid.remove()
-      if self.p_vor_cell:
-        for p_vor_cell in self.p_vor_cell:
-          p_vor_cell.remove()
+    if refresh:
+      self.refresh_voronoi()
 
-    self.p_vor_centroid = []
-    self.p_vor_cell = []
     for centroid in vor_centroid:
-      p = patches.Circle(centroid, radius=0.1, fill=True)
+      p = patches.Circle(centroid, radius=centroid_size, fill=True, color=centroid_color)
       self.p_vor_centroid.append(p)
       self.axes.add_patch(p)
 
@@ -130,6 +134,14 @@ class Simulator:
       p = patches.Polygon(cell, fill=False, closed=True)
       self.p_vor_cell.append(p)
       self.axes.add_patch(p)
+
+  def refresh_voronoi(self):
+    for p_vor_centroid in self.p_vor_centroid:
+      p_vor_centroid.remove()
+    for p_vor_cell in self.p_vor_cell:
+      p_vor_cell.remove()
+    self.p_vor_centroid = []
+    self.p_vor_cell = []
 
   def plot(self):
     self.axes.autoscale()
@@ -164,15 +176,15 @@ if __name__ == "__main__":
   density_functions = [
     DensityFunction(
       type='gaussian',
-      phi = lambda x, y: np.exp(-0.5 * (x**2 + y**2))/ (2 * np.pi),
+      phi = lambda x, y: np.exp(-0.5 * ((x)**2 + y**2)*2)/ (2 * np.pi),
       color=Color.CYAN.value,
       center=[0, 0]
     ),
     # DensityFunction(
     #   type='gaussian',
-    #   phi = lambda x, y: np.exp(-0.5 * ((x-5)**2 + (y-5)**2))/ (2 * np.pi),
+    #   phi = lambda x, y: np.exp(-0.5 * ((x+5)**2 + y**2)*2)/ (2 * np.pi),
     #   color=Color.MAGENTA.value,
-    #   center=[5, 5]
+    #   center=[-5, 0]
     # ),
   ]
 
@@ -205,7 +217,10 @@ if __name__ == "__main__":
     # for i, robot in enumerate(robots):
     #   robot.move_to_point(vor_centroid[i])
     sim.plot_swarm(swarm)
-    sim.plot_voronoi(vor_prime[Color.CYAN.value][0], vor_prime[Color.CYAN.value][1])
+    sim.refresh_voronoi()
+    sim.plot_voronoi(vor_prime[Color.CYAN.value][0], vor_prime[Color.CYAN.value][1], refresh=False, centroid_color='blue')
+    # sim.plot_voronoi(vor_prime[Color.MAGENTA.value][0], vor_prime[Color.MAGENTA.value][1], refresh=False, centroid_color='red')
+
 
     sim.update_plot()
     time.sleep(0.01)
