@@ -3,12 +3,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import patches
 from robot import Robot
-from converage_control import DensityFunction
 from scipy.spatial import Voronoi
 from voronoi import voronoi_centroids
 from matplotlib.colors import hex2color, to_hex
 import random
-from utils import Color
+from utils import Color, DensityFunction
 
 # rgb hex to cmy
 def hex_to_cmy(color):
@@ -148,7 +147,7 @@ class Swarm:
 
 if __name__ == "__main__":
   robot_1 = Robot( 
-    robot_pose=[5, 5, 1],
+    robot_pose=[0, 0, 1],
     equiped_color=[Color.CYAN.value]
   )
   robot_2 = Robot( 
@@ -163,7 +162,7 @@ if __name__ == "__main__":
     robot_pose=[-5, 5, 0.0],
     equiped_color=[Color.CYAN.value, Color.MAGENTA.value]
   )
-  robots = [robot_1, robot_2]
+  robots = [robot_1]
 
 
   density_functions = [
@@ -173,12 +172,12 @@ if __name__ == "__main__":
       color=Color.CYAN.value,
       center=[0, 0]
     ),
-    DensityFunction(
-      type='gaussian',
-      phi = lambda x, y: np.exp(-0.5 * ((x-5)**2 + (y-5)**2))/ (2 * np.pi),
-      color=Color.MAGENTA.value,
-      center=[5, 5]
-    ),
+    # DensityFunction(
+    #   type='gaussian',
+    #   phi = lambda x, y: np.exp(-0.5 * ((x-5)**2 + (y-5)**2))/ (2 * np.pi),
+    #   color=Color.MAGENTA.value,
+    #   center=[5, 5]
+    # ),
   ]
 
   env = np.array([
@@ -195,9 +194,9 @@ if __name__ == "__main__":
   vor_robots = swarm.color_coverage_control()
   print(vor_robots)
 
-  for i in range(len(robots)):
-    robot = robots[i]
-    robot.coverage_control(vor_robots[i])
+  # for i in range(len(robots)):
+  #   robot = robots[i]
+  #   robot.coverage_control(vor_robots[i])
 
 
   # for i in range(500):

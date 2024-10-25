@@ -6,9 +6,10 @@ from matplotlib.colors import to_rgba
 import math
 from swarm import Swarm
 from robot import Robot
-from converage_control import DensityFunction
 from scipy.spatial import Voronoi
 import time
+
+from utils import DensityFunction
 
 class Simulator:
   def __init__(self, swarm, environment, **kwargs):

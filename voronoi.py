@@ -1,6 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.spatial import Delaunay, Voronoi, voronoi_plot_2d
+
+from utils import DensityFunction
+
 # from converage_control import mirror_robots_about_environment, DensityFunction
 
 
@@ -175,19 +178,19 @@ if __name__ == '__main__':
   # if only one robot, the voronoi cell is the environment
 
 
-    # vc = np.array([
-    #     [0, 0],
-    #     [1, 0],
-    #     [1, 1],
-    #     [0, 1]
-    # ])
+    vc = np.array([
+        [10, 10],
+        [10, -10],
+        [-10, -10],
+        [-10, 10]
+    ])
 
-    # # gaussian density function mean at (0,0) and variance 1
-    # phi = lambda x, y: np.exp(-0.5 * (x**2 + y**2))/ (2 * np.pi)
-    # density_function = DensityFunction('gaussian',phi, None)
+    # gaussian density function mean at (0,0) and variance 1
+    phi = lambda x, y: np.exp(-0.5 * (x**2 + y**2))/ (2 * np.pi)
+    density_function = DensityFunction('gaussian',phi, None)
 
-    # G, area = voronoi_centroids(vc, density_function)
+    G, area = voronoi_centroids(vc, density_function)
 
-    # print(G)
-    # print(area)
+    print(G)
+    print(area)
     pass
