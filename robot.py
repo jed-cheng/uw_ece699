@@ -65,13 +65,9 @@ class Robot:
 
 
   def coverage_control(self, vor_prime):
-    vor_centroid, vor_area = [], []
-    for vor in vor_prime:
-      vor_centroid.append(vor[0])
-      vor_area.append(vor[2])
 
     u = np.zeros(2)
-    for centroid, area in zip(vor_centroid, vor_area):
+    for centroid, _,  area in vor_prime:
       u += (centroid - self.robot_pose[:2]) * area
     R = np.array([
       [math.cos(self.robot_pose[2]), math.sin(self.robot_pose[2])],

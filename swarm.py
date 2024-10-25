@@ -28,6 +28,10 @@ class Swarm:
     self.robots = robots
     self.environment = environment
     self.density_functions = density_functions
+    self.cyan_density_functions = None
+    self.magenta_density_functions = None
+    self.yellow_density_functions = None
+    self.get_prime_density_functions(density_functions)
 
 
 
@@ -80,24 +84,51 @@ class Swarm:
       if y > 0:
         prime_density_functions_map[Color.YELLOW.value].append((y, density_function))
 
-    return prime_density_functions_map
+    if len(prime_density_functions_map[Color.CYAN.value]):
+      cyan_density_functions = prime_density_functions_map[Color.CYAN.value]
+      self.cyan_density_functions = DensityFunction(
+          type='gaussian',
+          phi = lambda x, y: max([value * prime_density_function.phi(x, y) for value, prime_density_function in cyan_density_functions]) if len(cyan_density_functions) > 0 else 0,
+          color=Color.CYAN.value,
+        )
+      
+    if len(prime_density_functions_map[Color.MAGENTA.value]):
+      magenta_density_functions = prime_density_functions_map[Color.MAGENTA.value]
+      self.magenta_density_functions = DensityFunction(
+          type='gaussian',
+          phi = lambda x, y: max([value * prime_density_function.phi(x, y) for value, prime_density_function in magenta_density_functions]) if len(magenta_density_functions) > 0 else 0,
+          color=Color.MAGENTA.value,
+        )
+
+    if len(prime_density_functions_map[Color.YELLOW.value]):
+      yellow_density_functions = prime_density_functions_map[Color.YELLOW.value]
+      self.yellow_density_functions = DensityFunction(
+          type='gaussian',
+          phi = lambda x, y: max([value * prime_density_function.phi(x, y) for value, prime_density_function in yellow_density_functions]) if len(yellow_density_functions) > 0 else 0,
+          color=Color.YELLOW.value,
+        )
+    # return prime_density_functions_map
+
 
 
   def color_coverage_control(self):
     vor_robots = dict({i: [] for i in range(len(self.robots))})
 
-    prime_density_functions = self.get_prime_density_functions(self.density_functions)
 
-    for prime_color in prime_density_functions.keys():
+    for prime_color in [Color.CYAN.value, Color.MAGENTA.value, Color.YELLOW.value]:
       robots_with_color_list = [(i, robot) for i, robot in enumerate(self.robots) if prime_color in robot.equiped_color]
       if len(robots_with_color_list) == 0:
         continue
       
-      density_function = DensityFunction(
-        type='gaussian',
-        phi = lambda x, y: max([value * prime_density_function.phi(x, y) for value, prime_density_function in prime_density_functions[prime_color]]) if len(prime_density_functions[prime_color]) > 0 else 0,
-        color=prime_color,
-      )
+      if prime_color == Color.CYAN.value:
+        density_function = self.cyan_density_functions
+      elif prime_color == Color.MAGENTA.value:
+        density_function = self.magenta_density_functions
+      elif prime_color == Color.YELLOW.value:
+        density_function = self.yellow_density_functions
+
+      if density_function is None:
+        continue
 
         
       robots_idx, robots_with_color = zip(*robots_with_color_list)
@@ -115,6 +146,10 @@ class Swarm:
     robot_locations = np.array([robot.robot_pose[:2] for robot in robots])
     Np = robot_locations.shape[0]
 
+    if( density_function.color == Color.MAGENTA.value):
+      print(density_function.phi(5, 5))
+      print(density_function.phi(0, 0))
+      print(density_function.phi(-5, -5))
     mirrored_robots =self.mirror_robots_about_environment(robots)
     P = np.concatenate([robot_locations, mirrored_robots])
 

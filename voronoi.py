@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.spatial import Delaunay, Voronoi, voronoi_plot_2d
 
-from utils import DensityFunction
+from utils import Color, DensityFunction
 
 # from converage_control import mirror_robots_about_environment, DensityFunction
 
@@ -151,6 +151,11 @@ def voronoi_centroids(
     
     elif density_function.type == 'gaussian':
         phiA = lambda x, y: np.maximum(np.finfo(float).eps, density_function.phi(x, y))
+        if density_function.color == Color.MAGENTA.value:
+            print(np.finfo(float).eps)
+            print(phiA(0, 0))
+            print(phiA(5, 5))
+            print(phiA(10, 10))
         phiSx = lambda x, y: x * density_function.phi(x, y)
         phiSy = lambda x, y: y * density_function.phi(x, y)
         tri = Delaunay(voronoi_cell)
