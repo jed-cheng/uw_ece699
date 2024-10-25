@@ -64,7 +64,7 @@ class Robot:
     self.set_mobile_base_speed(vw[0], vw[1])
 
 
-  def coverage_control(self, vor_prime):
+  def coverage_control(self, vor_prime, step=None):
 
     u = np.zeros(2)
     for centroid, _,  area in vor_prime:
@@ -75,7 +75,7 @@ class Robot:
     ])
     vw = np.array([[1,0], [0,1]]) @ R @ u
 
-    self.set_mobile_base_speed(vw[0], vw[1])
+    self.set_mobile_base_speed(vw[0], vw[1], step)
 
   def set_trail_color(self, color):
     self.trail_color = color

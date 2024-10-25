@@ -138,7 +138,7 @@ class Swarm:
       robots_idx, robots_with_color = zip(*robots_with_color_list)
       vor_centroid, vor_cell, vor_area = self.coverage_control(robots_with_color, density_function)
 
-      for i in range(len(robots_with_color)):
+      for i in range(len(robots_with_color_list)):
         vor_robots[robots_idx[i]].append((vor_centroid[i], vor_cell[i], vor_area[i]))
       
       vor_prime[prime_color] = (vor_centroid, vor_cell, vor_area)
@@ -191,11 +191,11 @@ if __name__ == "__main__":
   )
   robot_2 = Robot( 
     robot_pose=[-5, -5, -1],
-    equiped_color=[Color.CYAN.value, Color.MAGENTA.value]
+    equiped_color=[Color.CYAN.value]
   )
   robot_3 = Robot( 
     robot_pose=[5, -5, 0.0],
-    equiped_color=[Color.CYAN.value]
+    equiped_color=[Color.CYAN.value, Color.MAGENTA.value]
   )
   robot_4 = Robot( 
     robot_pose=[-5, 5, 0.0],

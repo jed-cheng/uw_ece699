@@ -155,7 +155,7 @@ class Simulator:
 
 if __name__ == "__main__":
   robot_1 = Robot( 
-    robot_pose=[5, 5, 1],
+    robot_pose=[5, 5, 0],
     equiped_color=[Color.CYAN.value, Color.MAGENTA.value]
   )
   robot_2 = Robot( 
@@ -176,7 +176,7 @@ if __name__ == "__main__":
   density_functions = [
     DensityFunction(
       type='gaussian',
-      phi = lambda x, y: np.exp(-0.5 * ((x)**2 + y**2)*2)/ (2 * np.pi),
+      phi = lambda x, y: np.exp(-0.5 * ((x)**2 + y**2))/ (2 * np.pi),
       color=Color.CYAN.value,
       center=[0, 0]
     ),
@@ -213,7 +213,7 @@ if __name__ == "__main__":
     for j in range(len(robots)):
       robot = robots[j]
       vor_robot = vor_robots[j]
-      robot.coverage_control(vor_robot)
+      robot.coverage_control(vor_robot, step=10)
     # for i, robot in enumerate(robots):
     #   robot.move_to_point(vor_centroid[i])
     sim.plot_swarm(swarm)
