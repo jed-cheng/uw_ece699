@@ -64,7 +64,12 @@ class Robot:
     self.set_mobile_base_speed(vw[0], vw[1])
 
 
-  def coverage_control(self, vor_centroid, vor_area):
+  def coverage_control(self, vor_prime):
+    vor_centroid, vor_area = [], []
+    for vor in vor_prime:
+      vor_centroid.append(vor[0])
+      vor_area.append(vor[2])
+
     u = np.zeros(2)
     for centroid, area in zip(vor_centroid, vor_area):
       u += (centroid - self.robot_pose[:2]) * area

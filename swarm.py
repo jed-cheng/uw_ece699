@@ -81,7 +81,7 @@ class Swarm:
       phi = lambda x, y: max([value * density_function.phi(x, y) for value, density_function in density_functions]) if len(density_functions) > 0 else 0
       prime_density_functions[color] = DensityFunction(
         type='gaussian',
-        phi=lambda x, y: phi,
+        phi = phi,
         color=color,
         center=[0, 0]
       )
@@ -194,6 +194,10 @@ if __name__ == "__main__":
 
   vor_robots = swarm.color_coverage_control()
   print(vor_robots)
+
+  for i in range(len(robots)):
+    robot = robots[i]
+    robot.coverage_control(vor_robots[i])
 
 
   # for i in range(500):
