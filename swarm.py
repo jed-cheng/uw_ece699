@@ -113,7 +113,11 @@ class Swarm:
 
   def color_coverage_control(self):
     vor_robots = dict({i: [] for i in range(len(self.robots))})
-
+    vor_prime = dict({
+      Color.CYAN.value: None,
+      Color.MAGENTA.value: None,
+      Color.YELLOW.value: None
+    })
 
     for prime_color in [Color.CYAN.value, Color.MAGENTA.value, Color.YELLOW.value]:
       robots_with_color_list = [(i, robot) for i, robot in enumerate(self.robots) if prime_color in robot.equiped_color]
@@ -136,9 +140,11 @@ class Swarm:
 
       for i in range(len(robots_with_color)):
         vor_robots[robots_idx[i]].append((vor_centroid[i], vor_cell[i], vor_area[i]))
+      
+      vor_prime[prime_color] = (vor_centroid, vor_cell, vor_area)
 
 
-    return vor_robots
+    return vor_robots, vor_prime
 
         
 
@@ -146,10 +152,6 @@ class Swarm:
     robot_locations = np.array([robot.robot_pose[:2] for robot in robots])
     Np = robot_locations.shape[0]
 
-    if( density_function.color == Color.MAGENTA.value):
-      print(density_function.phi(5, 5))
-      print(density_function.phi(0, 0))
-      print(density_function.phi(-5, -5))
     mirrored_robots =self.mirror_robots_about_environment(robots)
     P = np.concatenate([robot_locations, mirrored_robots])
 

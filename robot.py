@@ -37,8 +37,8 @@ class Robot:
     self.last_time_set_mobile_base_speed = int(round(time.time()*1000))
     self.last_time_get_poses = int(round(time.time()*1000))
 
-  def set_mobile_base_speed(self, v:float,  w:float):
-    delta_time_set_mobile_base_speed = int(round(time.time()*1000)) - self.last_time_set_mobile_base_speed
+  def set_mobile_base_speed(self, v:float,  w:float, step=None):
+    delta_time_set_mobile_base_speed = int(round(time.time()*1000)) - self.last_time_set_mobile_base_speed if step is None else step
     if delta_time_set_mobile_base_speed > self.TIMEOUT_SET_MOBILE_BASE_SPEED:
       self.robot_pose[0] = self.robot_pose[0] + (v * math.cos(self.robot_pose[2])) * delta_time_set_mobile_base_speed / 1000.0
       self.robot_pose[1] = self.robot_pose[1] + (v * math.sin(self.robot_pose[2])) * delta_time_set_mobile_base_speed / 1000.0

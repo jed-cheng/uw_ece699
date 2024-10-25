@@ -42,7 +42,7 @@ class Simulator:
 
 
 
-  def plot_density_functions(self, density_functions, range=5, resolution=100):
+  def plot_density_functions(self, density_functions, range=5, resolution=100, refresh=True):
     if self.p_density:
       for p in self.p_density:
         p.remove()
@@ -147,7 +147,7 @@ if __name__ == "__main__":
     equiped_color=[Color.CYAN.value, Color.MAGENTA.value]
   )
   robot_2 = Robot( 
-    robot_pose=[-5, -5, -1],
+    robot_pose=[-5, -5, 0],
     equiped_color=[Color.CYAN.value, Color.MAGENTA.value]
   )
   robot_3 = Robot( 
@@ -197,7 +197,7 @@ if __name__ == "__main__":
 
   for i in range(500):
     # vor_centroid, vor_cell, vor_area = swarm.coverage_control(robots, density_functions[0])
-    vor_robots = swarm.color_coverage_control()
+    vor_robots, vor_prime = swarm.color_coverage_control()
     for j in range(len(robots)):
       robot = robots[j]
       vor_robot = vor_robots[j]
@@ -205,7 +205,7 @@ if __name__ == "__main__":
     # for i, robot in enumerate(robots):
     #   robot.move_to_point(vor_centroid[i])
     sim.plot_swarm(swarm)
-    # sim.plot_voronoi(vor_centroid, vor_cell)
+    sim.plot_voronoi(vor_prime[Color.CYAN.value][0], vor_prime[Color.CYAN.value][1])
 
     sim.update_plot()
     time.sleep(0.01)
