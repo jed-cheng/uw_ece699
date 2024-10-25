@@ -80,7 +80,7 @@ class Swarm:
     for color, density_functions in prime_density_functions.items():
       prime_density_functions[color] = DensityFunction(
         type='gaussian',
-        phi=lambda x, y: max([value * density_function.phi(x, y) for value, density_function in density_functions]),
+        phi=lambda x, y: max([value * density_function.phi(x, y) for value, density_function in density_functions]) if len(density_functions) > 0 else 0,
         color=color,
         center=[0, 0]
       )
@@ -94,8 +94,11 @@ class Swarm:
     prime_density_functions = self.get_prime_density_functions(self.density_functions)
 
     for prime_color in prime_density_functions.keys():
-      robots_idx, robots_with_color = zip(*[(i, robot) for i, robot in enumerate(self.robots) if prime_color in robot.equiped_color])
-      # robots_idx, robots_equipped_color = zip(*robots_equipped_color_with_idx)
+      robots_with_color_list = [(i, robot) for i, robot in enumerate(self.robots) if prime_color in robot.equiped_color]
+      if len(robots_with_color_list) == 0:
+        continue
+
+      robots_idx, robots_with_color = zip(*robots_with_color_list)
       vor_centroid, vor_cell, vor_area = self.coverage_control(robots_with_color, prime_density_functions[prime_color])
 
       for i in range(len(robots_with_color)):
@@ -110,7 +113,7 @@ class Swarm:
     #   for i in range(len(robots_equipped_color)):
     #     vor_robots[robots_idx[i]].append((vor_centroid[i], vor_cell[i], vor_area[i])) 
 
-    # return vor_robots
+    return vor_robots
 
         
 
@@ -153,7 +156,7 @@ class Swarm:
 if __name__ == "__main__":
   robot_1 = Robot( 
     robot_pose=[5, 5, 1],
-    equiped_color=[Color.CYAN.value, Color.MAGENTA.value]
+    equiped_color=[Color.CYAN.value]
   )
   robot_2 = Robot( 
     robot_pose=[-5, -5, -1],
@@ -167,7 +170,7 @@ if __name__ == "__main__":
     robot_pose=[-5, 5, 0.0],
     equiped_color=[Color.CYAN.value, Color.MAGENTA.value]
   )
-  robots = [robot_1, robot_2, robot_3, robot_4]
+  robots = [robot_1, robot_2]
 
 
   density_functions = [
