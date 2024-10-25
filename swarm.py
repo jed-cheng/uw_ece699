@@ -8,6 +8,7 @@ from voronoi import voronoi_centroids
 from matplotlib.colors import hex2color, to_hex
 import random
 from utils import Color, DensityFunction
+import copy
 
 # rgb hex to cmy
 def hex_to_cmy(color):
@@ -63,7 +64,7 @@ class Swarm:
 
 
   def get_prime_density_functions(self, density_functions):
-    prime_density_functions  = dict({
+    prime_density_functions_map  = dict({
       Color.CYAN.value: [],
       Color.MAGENTA.value: [],
       Color.YELLOW.value: []
@@ -72,20 +73,14 @@ class Swarm:
     for density_function in density_functions:
       c, m, y = hex_to_cmy(density_function.color)
 
-      prime_density_functions[Color.CYAN.value].append((c, density_function))
-      prime_density_functions[Color.MAGENTA.value].append((m, density_function))
-      prime_density_functions[Color.YELLOW.value].append((y, density_function))
+      if c > 0:
+        prime_density_functions_map[Color.CYAN.value].append((c, density_function))
+      if m > 0:
+        prime_density_functions_map[Color.MAGENTA.value].append((m, density_function))
+      if y > 0:
+        prime_density_functions_map[Color.YELLOW.value].append((y, density_function))
 
-    for color, density_functions in prime_density_functions.items():
-      phi = lambda x, y: max([value * density_function.phi(x, y) for value, density_function in density_functions]) if len(density_functions) > 0 else 0
-      prime_density_functions[color] = DensityFunction(
-        type='gaussian',
-        phi = phi,
-        color=color,
-        center=[0, 0]
-      )
-
-    return prime_density_functions
+    return prime_density_functions_map
 
 
   def color_coverage_control(self):
@@ -97,9 +92,16 @@ class Swarm:
       robots_with_color_list = [(i, robot) for i, robot in enumerate(self.robots) if prime_color in robot.equiped_color]
       if len(robots_with_color_list) == 0:
         continue
+      
+      density_function = DensityFunction(
+        type='gaussian',
+        phi = lambda x, y: max([value * prime_density_function.phi(x, y) for value, prime_density_function in prime_density_functions[prime_color]]) if len(prime_density_functions[prime_color]) > 0 else 0,
+        color=prime_color,
+      )
 
+        
       robots_idx, robots_with_color = zip(*robots_with_color_list)
-      vor_centroid, vor_cell, vor_area = self.coverage_control(robots_with_color, prime_density_functions[prime_color])
+      vor_centroid, vor_cell, vor_area = self.coverage_control(robots_with_color, density_function)
 
       for i in range(len(robots_with_color)):
         vor_robots[robots_idx[i]].append((vor_centroid[i], vor_cell[i], vor_area[i]))
@@ -147,8 +149,8 @@ class Swarm:
 
 if __name__ == "__main__":
   robot_1 = Robot( 
-    robot_pose=[0, 0, 1],
-    equiped_color=[Color.CYAN.value]
+    robot_pose=[5, 5, 1],
+    equiped_color=[Color.CYAN.value, Color.MAGENTA.value]
   )
   robot_2 = Robot( 
     robot_pose=[-5, -5, -1],
@@ -156,13 +158,13 @@ if __name__ == "__main__":
   )
   robot_3 = Robot( 
     robot_pose=[5, -5, 0.0],
-    equiped_color=[Color.CYAN.value, Color.MAGENTA.value]
+    equiped_color=[Color.CYAN.value]
   )
   robot_4 = Robot( 
     robot_pose=[-5, 5, 0.0],
-    equiped_color=[Color.CYAN.value, Color.MAGENTA.value]
+    equiped_color=[Color.CYAN.value]
   )
-  robots = [robot_1]
+  robots = [robot_1, robot_2, robot_3, robot_4]
 
 
   density_functions = [
@@ -172,12 +174,12 @@ if __name__ == "__main__":
       color=Color.CYAN.value,
       center=[0, 0]
     ),
-    # DensityFunction(
-    #   type='gaussian',
-    #   phi = lambda x, y: np.exp(-0.5 * ((x-5)**2 + (y-5)**2))/ (2 * np.pi),
-    #   color=Color.MAGENTA.value,
-    #   center=[5, 5]
-    # ),
+    DensityFunction(
+      type='gaussian',
+      phi = lambda x, y: np.exp(-0.5 * ((x-5)**2 + (y-5)**2))/ (2 * np.pi),
+      color=Color.MAGENTA.value,
+      center=[5, 5]
+    ),
   ]
 
   env = np.array([
@@ -192,7 +194,12 @@ if __name__ == "__main__":
   swarm = Swarm(robots, env, density_functions)
 
   vor_robots = swarm.color_coverage_control()
-  print(vor_robots)
+  for i, vor_robot in vor_robots.items():
+    print(i)
+    centroid, cell, area = zip(*vor_robot)
+    print(centroid)
+    print(cell)
+    print(area)
 
   # for i in range(len(robots)):
   #   robot = robots[i]
@@ -207,5 +214,26 @@ if __name__ == "__main__":
   #   swarm.update_plot()
   #   time.sleep(0.001)
   pass
-
- 
+# Expected Output:
+#  centriod
+#  [[ 0.79206603  0.79206603]
+#  [-0.75852752 -0.75852752]
+#  [ 0.75852752 -0.75852752]
+#  [-0.79206603  0.79206603]]
+#  cell
+# [array([[10.,  0.],
+#         [ 0.,  0.],
+#         [ 0., 10.],
+#         [10., 10.]]) array([[  0.,   0.],
+#                             [  0., -10.],
+#                             [-10., -10.],
+#                             [-10.,   0.]]) array([[  0.,   0.],
+#                                                   [ 10.,   0.],
+#                                                   [ 10., -10.],
+#                                                   [  0., -10.]])
+#  array([[-10.,   0.],
+#         [  0.,   0.],
+#         [  0.,  10.],
+#         [-10.,  10.]])]
+#  area
+# [0.28504551 0.25842994 0.25842994 0.28504551]
