@@ -78,9 +78,10 @@ class Swarm:
       prime_density_functions[Color.YELLOW.value].append((y, density_function))
 
     for color, density_functions in prime_density_functions.items():
+      phi = lambda x, y: max([value * density_function.phi(x, y) for value, density_function in density_functions]) if len(density_functions) > 0 else 0
       prime_density_functions[color] = DensityFunction(
         type='gaussian',
-        phi=lambda x, y: max([value * density_function.phi(x, y) for value, density_function in density_functions]) if len(density_functions) > 0 else 0,
+        phi=lambda x, y: phi,
         color=color,
         center=[0, 0]
       )
@@ -104,14 +105,6 @@ class Swarm:
       for i in range(len(robots_with_color)):
         vor_robots[robots_idx[i]].append((vor_centroid[i], vor_cell[i], vor_area[i]))
 
-    # for prime_color in [Color.CYAN.value, Color.MAGENTA.value, Color.YELLOW.value]:
-    #   prime_density_function = self.get_prime_density_functions(self.density_functions)
-    #   robots_equipped_color_with_idx = [(i, robot) for i, robot in enumerate(self.robots) if prime_color in robot.equiped_color]
-    #   robots_idx, robots_equipped_color = zip(*robots_equipped_color_with_idx)
-    #   vor_centroid, vor_cell, vor_area = self.coverage_control(robots_equipped_color, prime_density_function)
-      
-    #   for i in range(len(robots_equipped_color)):
-    #     vor_robots[robots_idx[i]].append((vor_centroid[i], vor_cell[i], vor_area[i])) 
 
     return vor_robots
 
