@@ -201,9 +201,9 @@ if __name__ == "__main__":
     print(cell)
     print(area)
 
-  # for i in range(len(robots)):
-  #   robot = robots[i]
-  #   robot.coverage_control(vor_robots[i])
+  for i in range(len(robots)):
+    robot = robots[i]
+    robot.coverage_control(vor_robots[i])
 
 
   # for i in range(500):

@@ -9,7 +9,7 @@ from robot import Robot
 from scipy.spatial import Voronoi
 import time
 
-from utils import DensityFunction
+from utils import Color, DensityFunction
 
 class Simulator:
   def __init__(self, swarm, environment, **kwargs):
@@ -109,18 +109,18 @@ class Simulator:
       self.axes.add_line(p_trail)
 
 
-  def plot_voronoi(self, vor_centroid, vor_cell):
+  def plot_voronoi(self, vor_centroid, vor_cell, update=True):
 
-    if self.p_vor_centroid:
-      for p_vor_centroid in self.p_vor_centroid:
-        p_vor_centroid.remove()
-    if self.p_vor_cell:
-      for p_vor_cell in self.p_vor_cell:
-        p_vor_cell.remove()
+    if update:
+      if self.p_vor_centroid:
+        for p_vor_centroid in self.p_vor_centroid:
+          p_vor_centroid.remove()
+      if self.p_vor_cell:
+        for p_vor_cell in self.p_vor_cell:
+          p_vor_cell.remove()
 
     self.p_vor_centroid = []
     self.p_vor_cell = []
-
     for centroid in vor_centroid:
       p = patches.Circle(centroid, radius=0.1, fill=True)
       self.p_vor_centroid.append(p)
@@ -134,7 +134,7 @@ class Simulator:
   def plot(self):
     self.axes.autoscale()
     self.axes.set_aspect('equal')
-    # plt.ion()
+    plt.ion()
     plt.show()
 
   def update_plot(self):
@@ -143,10 +143,18 @@ class Simulator:
 
 if __name__ == "__main__":
   robots = [
-    Robot(robot_pose=[5, 5, 1], equiped_color=[]),
-    Robot(robot_pose=[-5, -5, -1],equiped_color=[]),
-    Robot(robot_pose=[5, -5, 0.0],equiped_color=[]),
-    Robot(robot_pose=[-5, 5, 0.0],equiped_color=[])
+    Robot(robot_pose=[5, 5, 1], equiped_color=[
+      Color.CYAN.value
+    ]),
+    Robot(robot_pose=[-5, -5, -1],equiped_color=[
+      Color.CYAN.value
+    ]),
+    Robot(robot_pose=[5, -5, 0.0],equiped_color=[
+      Color.CYAN.value
+    ]),
+    Robot(robot_pose=[-5, 5, 0.0],equiped_color=[
+      Color.CYAN.value
+    ])
   ]
 
   env = np.array([
@@ -161,37 +169,39 @@ if __name__ == "__main__":
     DensityFunction(
       type='gaussian',
       phi = lambda x, y: np.exp(-0.5 * (x**2 + y**2))/ (2 * np.pi),
-      color='#ff7f0e',
+      color= Color.CYAN.value,
       center=[0, 0]
     ),
-    DensityFunction(
-      type='gaussian',
-      phi = lambda x, y: np.exp(-0.5 * ((x-5)**2 + (y-5)**2))/ (2 * np.pi),
-      color='#1f77b4',
-      center=[5, 5]
-    )
+    # DensityFunction(
+    #   type='gaussian',
+    #   phi = lambda x, y: np.exp(-0.5 * ((x-5)**2 + (y-5)**2))/ (2 * np.pi),
+    #   color= Color.MAGENTA.value,
+    #   center=[5, 5]
+    # )
   ]
 
   swarm = Swarm(robots, env, density_functions)
 
   sim = Simulator(swarm, env)
-  vor_centroid, vor_cell, _ = swarm.coverage_control()
+  # vor_centroid, vor_cell, vor_area = swarm.coverage_control(robots, density_functions[0])
+
   sim.plot_environment(env)
   sim.plot_density_functions(density_functions)
   sim.plot_swarm(swarm)
-  sim.plot_voronoi(vor_centroid, vor_cell)
+  # sim.plot_voronoi(vor_centroid, vor_cell)
   sim.plot()
-  # for i in range(100):
-  #   time.sleep(0.1)
-  # for i in range(500):
-  #   vor_centroid, vor_cell, _ = swarm.converage_control()
-  #   for i, robot in enumerate(robots):
-  #     robot.move_to_point(vor_centroid[i])
-  #   sim.plot_swarm(swarm)
-  #   sim.plot_voronoi(vor_centroid, vor_cell)
 
-  #   sim.update_plot()
-  #   time.sleep(0.01)
+  for i in range(500):
+    vor_robots = swarm.color_coverage_control()
+    for j in range(len(robots)):
+      robot = robots[j]
+      vor_robot = vor_robots[j]
+      robot.coverage_control(vor_robot)
+    sim.plot_swarm(swarm)
+    # sim.plot_voronoi(vor_centroid, vor_cell)
+
+    sim.update_plot()
+    time.sleep(0.01)
 
 
 
