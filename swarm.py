@@ -8,6 +8,7 @@ from scipy.spatial import Voronoi
 from voronoi import voronoi_centroids
 from matplotlib.colors import hex2color, to_hex
 import random
+from utils import Color
 
 # rgb hex to cmy
 def hex_to_cmy(color):
@@ -36,7 +37,7 @@ class Swarm:
 
 
   def mirror_robots_about_environment(self, robots):
-    robot_locations = [robot.robot_pose[:2] for robot in robots]
+    robot_locations = np.array([robot.robot_pose[:2] for robot in robots])
     environment = self.environment
 
     num_robots = robot_locations.shape[0]
@@ -62,76 +63,69 @@ class Swarm:
     return mirrored_robots
 
 
-  def get_prime_density_functions(self):
-    C_density_function =  []
-    M_density_functions = []
-    Y_density_functions = []
+  def get_prime_density_functions(self, density_functions):
+    prime_density_functions  = dict({
+      Color.CYAN.value: [],
+      Color.MAGENTA.value: [],
+      Color.YELLOW.value: []
+    })
 
-    for density_function in self.density_functions:
+    for density_function in density_functions:
       c, m, y = hex_to_cmy(density_function.color)
-      C_density_function.append((c, density_function))
-      M_density_functions.append((m, density_function))
-      Y_density_functions.append((y, density_function))
 
-    C_density_function = DensityFunction(
-      type='gaussian',
-      phi=lambda x, y: max([c * density_function.phi(x, y) for c, density_function in C_density_function]),
-      color=cmy_to_hex([1, 0, 0])
-    )
+      prime_density_functions[Color.CYAN.value].append((c, density_function))
+      prime_density_functions[Color.MAGENTA.value].append((m, density_function))
+      prime_density_functions[Color.YELLOW.value].append((y, density_function))
 
-    M_density_function = DensityFunction(
-      type='gaussian',
-      phi=lambda x, y: max([m * density_function.phi(x, y) for m, density_function in M_density_functions]),
-      color=cmy_to_hex([0, 1, 0])
-    )
+    for color, density_functions in prime_density_functions.items():
+      prime_density_functions[color] = DensityFunction(
+        type='gaussian',
+        phi=lambda x, y: max([value * density_function.phi(x, y) for value, density_function in density_functions]),
+        color=color,
+        center=[0, 0]
+      )
 
-    Y_density_function = DensityFunction(
-      type='gaussian',
-      phi=lambda x, y: max([y * density_function.phi(x, y) for y, density_function in Y_density_functions]),
-      color=cmy_to_hex([0, 0, 1])
-    )
-
-    return C_density_function, M_density_function, Y_density_function
+    return prime_density_functions
 
 
   def color_coverage_control(self):
-    robot_locations = self.get_robot_locations()
-    cphi, mphi, yphi = self.get_prime_density_functions()
+    vor_robots = dict({i: [] for i in range(len(self.robots))})
 
-    store = {
-      'c': [],
-      'm': [],
-      'y': []
-    }
-    for phi in [cphi, mphi, yphi]:
-      robots_with_color = [robot for robot in self.robots if phi.color in robot.equiped_color]
-      vor_centroid, vor_cell, vor_area = self.converage_control(robots_with_color, phi )
-      store[phi.color].append(( robots_with_color, vor_centroid, vor_cell, vor_area))
-    for robot in self.robots:
-      vor_centroid, vor_area = [], []
-      for color in ['c', 'm', 'y']:
-        if color not in robot.equiped_color:
-          continue
+    prime_density_functions = self.get_prime_density_functions(self.density_functions)
 
-        idx = [i for i, (robots, _, _, _) in enumerate(store[color]) if robot in robots][0]
-        vor_centroid.append(store['c'][idx][1])
-        vor_area.append(store['c'][idx][3])
+    for prime_color in prime_density_functions.keys():
+      robots_idx, robots_with_color = zip(*[(i, robot) for i, robot in enumerate(self.robots) if prime_color in robot.equiped_color])
+      # robots_idx, robots_equipped_color = zip(*robots_equipped_color_with_idx)
+      vor_centroid, vor_cell, vor_area = self.coverage_control(robots_with_color, prime_density_functions[prime_color])
 
-      robot.coverage_control(vor_centroid, vor_area)
+      for i in range(len(robots_with_color)):
+        vor_robots[robots_idx[i]].append((vor_centroid[i], vor_cell[i], vor_area[i]))
+
+    # for prime_color in [Color.CYAN.value, Color.MAGENTA.value, Color.YELLOW.value]:
+    #   prime_density_function = self.get_prime_density_functions(self.density_functions)
+    #   robots_equipped_color_with_idx = [(i, robot) for i, robot in enumerate(self.robots) if prime_color in robot.equiped_color]
+    #   robots_idx, robots_equipped_color = zip(*robots_equipped_color_with_idx)
+    #   vor_centroid, vor_cell, vor_area = self.coverage_control(robots_equipped_color, prime_density_function)
+      
+    #   for i in range(len(robots_equipped_color)):
+    #     vor_robots[robots_idx[i]].append((vor_centroid[i], vor_cell[i], vor_area[i])) 
+
+    # return vor_robots
 
         
 
-  def converage_control(self, robots, density_function):
-    robot_locations = [robot.robot_pose[:2] for robot in robots]
+  def coverage_control(self, robots, density_function):
+    robot_locations = np.array([robot.robot_pose[:2] for robot in robots])
     Np = robot_locations.shape[0]
 
-    mirrored_robots =self.mirror_robots_about_environment()
+    mirrored_robots =self.mirror_robots_about_environment(robots)
     P = np.concatenate([robot_locations, mirrored_robots])
 
     vor = Voronoi(P)
     V = vor.vertices
     vor_cell = np.zeros(Np, dtype=object)
 
+    # get bounded voronoi cell for each robot
     for i in range(Np):
       point_idx = vor.point_region[i]
       vor_cell[i] = vor.regions[point_idx]
@@ -140,6 +134,7 @@ class Swarm:
     vor_centroid = np.zeros((len(vor_cell), 2))
     vor_area = np.zeros(len(vor_cell))
 
+    # get voronoi centroid and area for each robot
     for i in range(len(vor_cell)):
       vor_cell[i] = V[vor_cell[i]]
       Gi, area_i = voronoi_centroids(vor_cell[i], density_function)
@@ -156,44 +151,53 @@ class Swarm:
 
 
 if __name__ == "__main__":
-  # robot_1 = Robot( robot_pose=[5, 5, 1])
-  # robot_2 = Robot( robot_pose=[-5, -5, -1])
-  # robot_3 = Robot( robot_pose=[5, -5, 0.0])
-  # robot_4 = Robot( robot_pose=[-5, 5, 0.0])
-  # robots = [robot_1, robot_2, robot_3, robot_4]
-
-  # robots = []
-  # for i in range(-5, -3):
-  #   for j in range(-5, -3):
-  #     robot = Robot(robot_pose=[i, j, 0])
-  #     robots.append(robot)
-
-
-  # density_functions = [
-  #   DensityFunction(
-  #     type='gaussian',
-  #     phi = lambda x, y: np.exp(-0.5 * (x**2 + y**2))/ (2 * np.pi),
-  #     color='#ff7f0e'
-  #   ),
-  #   # DensityFunction(
-  #   #   type='gaussian',
-  #   #   phi = lambda x, y: np.exp(-0.5 * ((x-3)**2 + (y-6)**2))/ (2 * np.pi),
-  #   #   color='#ff7f0e'
-  #   # ),
-  # ]
-
-  # env = np.array([
-  #   [10, 10],
-  #   [10, -10],
-  #   [-10, -10],
-  #   [-10, 10],
-  #   [10, 10]
-  # ])
+  robot_1 = Robot( 
+    robot_pose=[5, 5, 1],
+    equiped_color=[Color.CYAN.value, Color.MAGENTA.value]
+  )
+  robot_2 = Robot( 
+    robot_pose=[-5, -5, -1],
+    equiped_color=[Color.CYAN.value, Color.MAGENTA.value]
+  )
+  robot_3 = Robot( 
+    robot_pose=[5, -5, 0.0],
+    equiped_color=[Color.CYAN.value, Color.MAGENTA.value]
+  )
+  robot_4 = Robot( 
+    robot_pose=[-5, 5, 0.0],
+    equiped_color=[Color.CYAN.value, Color.MAGENTA.value]
+  )
+  robots = [robot_1, robot_2, robot_3, robot_4]
 
 
+  density_functions = [
+    DensityFunction(
+      type='gaussian',
+      phi = lambda x, y: np.exp(-0.5 * (x**2 + y**2))/ (2 * np.pi),
+      color=Color.CYAN.value,
+      center=[0, 0]
+    ),
+    DensityFunction(
+      type='gaussian',
+      phi = lambda x, y: np.exp(-0.5 * ((x-5)**2 + (y-5)**2))/ (2 * np.pi),
+      color=Color.MAGENTA.value,
+      center=[5, 5]
+    ),
+  ]
+
+  env = np.array([
+    [10, 10],
+    [10, -10],
+    [-10, -10],
+    [-10, 10],
+    [10, 10]
+  ])
 
 
-  # swarm = Swarm(robots, env, density_functions)
+  swarm = Swarm(robots, env, density_functions)
+
+  vor_robots = swarm.color_coverage_control()
+  print(vor_robots)
 
 
   # for i in range(500):

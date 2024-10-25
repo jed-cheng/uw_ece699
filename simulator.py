@@ -174,7 +174,7 @@ if __name__ == "__main__":
   swarm = Swarm(robots, env, density_functions)
 
   sim = Simulator(swarm, env)
-  vor_centroid, vor_cell, _ = swarm.converage_control()
+  vor_centroid, vor_cell, _ = swarm.coverage_control()
   sim.plot_environment(env)
   sim.plot_density_functions(density_functions)
   sim.plot_swarm(swarm)

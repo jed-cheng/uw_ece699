@@ -1,3 +1,5 @@
 from enum import Enum
 class Color(Enum):
-  CYAN = ()
+  CYAN = '#00FFFF'
+  MAGENTA = '#FF00FF'
+  YELLOW = '#FFFF00'
