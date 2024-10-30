@@ -14,7 +14,7 @@ class Robot:
     robot_color = 'black',
     trail_width = 5,
     TIMEOUT_SET_MOBILE_BASE_SPEED = 0,
-    K = 1
+    K = 4
   ):
 
     self.robot_pose = robot_pose
@@ -53,7 +53,7 @@ class Robot:
     self.last_time_get_poses = int(round(time.time()*1000))
     return self.robot_pose
   
-  def move_to_point(self, point):
+  def move_to_point(self, point, step=None):
     u = self.K * (point - self.robot_pose[:2])
     R = np.array([
       [math.cos(self.robot_pose[2]), math.sin(self.robot_pose[2])],
@@ -61,7 +61,9 @@ class Robot:
     ])
     vw = np.array([[1,0], [0,1]]) @ R @ u
 
-    self.set_mobile_base_speed(vw[0], vw[1])
+    self.set_mobile_base_speed(vw[0], vw[1], step)
+
+    return vw
 
 
   def coverage_control(self, vor_prime, step=None):
@@ -69,6 +71,7 @@ class Robot:
     u = np.zeros(2)
     for centroid, _,  area in vor_prime:
       u += (centroid - self.robot_pose[:2]) * area
+    u = self.K * u
     R = np.array([
       [math.cos(self.robot_pose[2]), math.sin(self.robot_pose[2])],
       [-math.sin(self.robot_pose[2]), math.cos(self.robot_pose[2])]
@@ -76,6 +79,7 @@ class Robot:
     vw = np.array([[1,0], [0,1]]) @ R @ u
 
     self.set_mobile_base_speed(vw[0], vw[1], step)
+    return vw
 
   def set_trail_color(self, color):
     self.trail_color = color

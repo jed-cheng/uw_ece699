@@ -155,19 +155,19 @@ class Simulator:
 
 if __name__ == "__main__":
   robot_1 = Robot( 
-    robot_pose=[5, 5, 0],
+    robot_pose=[5, 5, 0.0],
     equiped_color=[Color.CYAN.value, Color.MAGENTA.value]
   )
   robot_2 = Robot( 
-    robot_pose=[-5, -5, 0],
+    robot_pose=[-5, 5, 0.0],
     equiped_color=[Color.CYAN.value, Color.MAGENTA.value]
   )
   robot_3 = Robot( 
-    robot_pose=[5, -5, 0.0],
+    robot_pose=[-5, -5, 0.0],
     equiped_color=[Color.CYAN.value]
   )
   robot_4 = Robot( 
-    robot_pose=[-5, 5, 0.0],
+    robot_pose=[5, -5, 0.0],
     equiped_color=[Color.CYAN.value]
   )
   robots = [robot_1, robot_2, robot_3, robot_4]
@@ -208,14 +208,23 @@ if __name__ == "__main__":
   sim.plot()
 
   for i in range(500):
-    # vor_centroid, vor_cell, vor_area = swarm.coverage_control(robots, density_functions[0])
+    vor_centroid, vor_cell, vor_area = swarm.coverage_control(robots, density_functions[0])
     vor_robots, vor_prime = swarm.color_coverage_control()
+
+    print('--------------------------------------------------')
     for j in range(len(robots)):
       robot = robots[j]
       vor_robot = vor_robots[j]
-      robot.coverage_control(vor_robot, step=10)
-    # for i, robot in enumerate(robots):
-    #   robot.move_to_point(vor_centroid[i])
+      vw = robot.coverage_control(vor_robot, step=10)
+      
+      print(j, vw, vor_robot[0][2])
+
+    # for j, robot in enumerate(robots):
+    #   vw = robot.move_to_point(vor_centroid[j], step=10)
+
+    #   print(j, vw)
+
+
     sim.plot_swarm(swarm)
     sim.refresh_voronoi()
     sim.plot_voronoi(vor_prime[Color.CYAN.value][0], vor_prime[Color.CYAN.value][1], refresh=False, centroid_color='blue')
