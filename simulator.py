@@ -170,22 +170,26 @@ if __name__ == "__main__":
     robot_pose=[5, -5, 0.0],
     equiped_color=[Color.CYAN.value]
   )
-  robots = [robot_1, robot_2, robot_3, robot_4]
+  robot_5 = Robot(
+    robot_pose=[0, 0, 0.0],
+    equiped_color=[Color.CYAN.value, Color.MAGENTA.value]
+  )
+  robots = [robot_1, robot_2, robot_3, robot_4, robot_5]
 
 
   density_functions = [
     DensityFunction(
       type='gaussian',
-      phi = lambda x, y: np.exp(-0.5 * ((x)**2 + y**2))/ (2 * np.pi),
+      phi = lambda x, y: np.exp(-0.5 * ((x-5)**2 + y**2))/ (2 * np.pi),
       color=Color.CYAN.value,
-      center=[0, 0]
+      center=[5, 0]
     ),
-    # DensityFunction(
-    #   type='gaussian',
-    #   phi = lambda x, y: np.exp(-0.5 * ((x+5)**2 + y**2)*2)/ (2 * np.pi),
-    #   color=Color.MAGENTA.value,
-    #   center=[-5, 0]
-    # ),
+    DensityFunction(
+      type='gaussian',
+      phi = lambda x, y: np.exp(-0.5 * ((x+5)**2 + y**2)*2)/ (2 * np.pi),
+      color=Color.MAGENTA.value,
+      center=[-5, 0]
+    ),
   ]
 
   env = np.array([
@@ -211,13 +215,14 @@ if __name__ == "__main__":
     vor_centroid, vor_cell, vor_area = swarm.coverage_control(robots, density_functions[0])
     vor_robots, vor_prime = swarm.color_coverage_control()
 
-    print('--------------------------------------------------')
     for j in range(len(robots)):
       robot = robots[j]
       vor_robot = vor_robots[j]
       vw = robot.coverage_control(vor_robot, step=10)
+      color = robot.mix_color(vor_robot)
+
+      print(j,vw, color)
       
-      print(j, vw, vor_robot[0][2])
 
     # for j, robot in enumerate(robots):
     #   vw = robot.move_to_point(vor_centroid[j], step=10)

@@ -3,6 +3,8 @@ import numpy as np
 from matplotlib import patches
 from matplotlib.lines import Line2D
 
+from utils import Color
+
 
 
 class Robot:
@@ -14,7 +16,7 @@ class Robot:
     robot_color = 'black',
     trail_width = 5,
     TIMEOUT_SET_MOBILE_BASE_SPEED = 0,
-    K = 4
+    K = 1
   ):
 
     self.robot_pose = robot_pose
@@ -69,7 +71,10 @@ class Robot:
   def coverage_control(self, vor_prime, step=None):
 
     u = np.zeros(2)
-    for centroid, _,  area in vor_prime:
+    for color, val in vor_prime.items():
+      if val is None:
+        continue
+      centroid, _, area = val
       u += (centroid - self.robot_pose[:2]) * area
     u = self.K * u
     R = np.array([
@@ -81,8 +86,39 @@ class Robot:
     self.set_mobile_base_speed(vw[0], vw[1], step)
     return vw
 
+  def mix_color(self, vor_prime):
+    color = np.zeros(3)
+    denorm = 0
+    for c, val in vor_prime.items():
+      if val is None:
+        continue
+      _, _, area = val
+      denorm += area
+
+    for c, val in vor_prime.items():
+      if val is None:
+        continue
+
+      _, _, area = val
+      if c == Color.CYAN.value:
+        color[0] = area / denorm
+      elif c == Color.MAGENTA.value:
+        color[1] = area / denorm
+      elif c == Color.YELLOW.value:
+        color[2] = area / denorm
+
+    color = 1 - color # rgb to cmy
+    self.set_trail_color(color)
+    return color
+    
+
+
+      
+      
+  
   def set_trail_color(self, color):
     self.trail_color = color
+
 
 
 

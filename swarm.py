@@ -112,7 +112,12 @@ class Swarm:
 
 
   def color_coverage_control(self):
-    vor_robots = dict({i: [] for i in range(len(self.robots))})
+    vor_robots = dict({i: 
+      dict({
+        Color.CYAN.value: None,
+        Color.MAGENTA.value: None,
+        Color.YELLOW.value: None
+      }) for i in range(len(self.robots))})
     vor_prime = dict({
       Color.CYAN.value: None,
       Color.MAGENTA.value: None,
@@ -139,7 +144,7 @@ class Swarm:
       vor_centroid, vor_cell, vor_area = self.coverage_control(robots_with_color, density_function)
 
       for i in range(len(robots_with_color_list)):
-        vor_robots[robots_idx[i]].append((vor_centroid[i], vor_cell[i], vor_area[i]))
+        vor_robots[robots_idx[i]][prime_color] = (vor_centroid[i], vor_cell[i], vor_area[i])
       
       vor_prime[prime_color] = (vor_centroid, vor_cell, vor_area)
 
