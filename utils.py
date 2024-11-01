@@ -9,11 +9,11 @@ class DensityFunction:
     self.center = center
     self.variance = variance
 
-    if center and variance:
+    if self.center and self.variance:
       # gaussian density function mean at center and variance variance
       self.func =  lambda x, y: np.exp(
-        -0.5*((x - center[0])**2/(variance[0]**2) + (y - center[1])**2/(variance[1]**2))
-      )/ (2 * np.pi * variance[0] * variance[1]) if type == 'gaussian' else 1
+        -0.5*((x - self.center[0])**2/(self.variance[0]**2) + (y - self.center[1])**2/(self.variance[1]**2))
+      )/ (2 * np.pi * self.variance[0] * self.variance[1]) if type == 'gaussian' else 1
     elif func:
       self.func = func
     else:

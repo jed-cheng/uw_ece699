@@ -158,15 +158,15 @@ class Simulator:
 
 if __name__ == "__main__":
   robot_1 = Robot( 
-    robot_pose=[5, 5, 0.0],
+    robot_pose=[-5, -4, 0.0],
     equiped_color=[Color.CYAN.value, Color.MAGENTA.value]
   )
   robot_2 = Robot( 
-    robot_pose=[-5, 5, 0.0],
+    robot_pose=[-5, -5, 0.0],
     equiped_color=[Color.CYAN.value, Color.MAGENTA.value]
   )
   robot_3 = Robot( 
-    robot_pose=[-5, -5, 0.0],
+    robot_pose=[-5, -6, 0.0],
     equiped_color=[Color.CYAN.value]
   )
   robot_4 = Robot( 
@@ -177,7 +177,7 @@ if __name__ == "__main__":
     robot_pose=[0, 0, 0.0],
     equiped_color=[Color.CYAN.value, Color.MAGENTA.value]
   )
-  robots = [robot_1]
+  robots = [robot_1, robot_2, robot_3]
 
 
   density_functions = [
@@ -185,14 +185,14 @@ if __name__ == "__main__":
       type='gaussian',
       color=Color.CYAN.value,
       center=[5, 0],
-      variance=[2, 2]
+      variance=[1, 1]
     ),
-    DensityFunction(
-      type='gaussian',
-      color=Color.MAGENTA.value,
-      center=[-5, 0],
-      variance=[2, 2]
-    ),
+    # DensityFunction(
+    #   type='gaussian',
+    #   color=Color.MAGENTA.value,
+    #   center=[-5, 0],
+    #   variance=[2, 2]
+    # ),
   ]
 
   env = np.array([
@@ -215,13 +215,15 @@ if __name__ == "__main__":
   sim.plot()
 
   for i in range(500):
-    vor_centroid, vor_cell, vor_area = swarm.coverage_control(robots, density_functions[0])
+    # vor_centroid, vor_cell, vor_area = swarm.coverage_control(robots, density_functions[0])
     vor_robots, vor_prime = swarm.color_coverage_control()
+
+
 
     for j in range(len(robots)):
       robot = robots[j]
       vor_robot = vor_robots[j]
-      vw = robot.coverage_control(vor_robot)
+      vw = robot.coverage_control(vor_robot, delta=10)
       color = robot.mix_color(vor_robot)
 
       print(j,vw, color)
@@ -240,6 +242,9 @@ if __name__ == "__main__":
         continue
       centroid, cell, area = val
       sim.plot_voronoi(centroid, cell, refresh=False, centroid_color=color, boundary_color=color)
+
+    if i % 100 == 0:
+      density_functions[0].center -= np.array([1, 1])
 
     sim.update_plot()
     time.sleep(0.01)

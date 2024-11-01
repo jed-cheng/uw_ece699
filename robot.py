@@ -39,8 +39,8 @@ class Robot:
     self.last_time_set_mobile_base_speed = int(round(time.time()*1000))
     self.last_time_get_poses = int(round(time.time()*1000))
 
-  def set_mobile_base_speed(self, v:float,  w:float, step=None):
-    delta_time_set_mobile_base_speed = int(round(time.time()*1000)) - self.last_time_set_mobile_base_speed if step is None else step
+  def set_mobile_base_speed(self, v:float,  w:float, delta=None):
+    delta_time_set_mobile_base_speed = int(round(time.time()*1000)) - self.last_time_set_mobile_base_speed if delta is None else delta
     if delta_time_set_mobile_base_speed > self.TIMEOUT_SET_MOBILE_BASE_SPEED:
       self.robot_pose[0] = self.robot_pose[0] + (v * math.cos(self.robot_pose[2])) * delta_time_set_mobile_base_speed / 1000.0
       self.robot_pose[1] = self.robot_pose[1] + (v * math.sin(self.robot_pose[2])) * delta_time_set_mobile_base_speed / 1000.0
@@ -55,7 +55,7 @@ class Robot:
     self.last_time_get_poses = int(round(time.time()*1000))
     return self.robot_pose
   
-  def move_to_point(self, point, step=None):
+  def move_to_point(self, point, delta=None):
     u = self.K * (point - self.robot_pose[:2])
     R = np.array([
       [math.cos(self.robot_pose[2]), math.sin(self.robot_pose[2])],
@@ -63,12 +63,12 @@ class Robot:
     ])
     vw = np.array([[1,0], [0,1]]) @ R @ u
 
-    self.set_mobile_base_speed(vw[0], vw[1], step)
+    self.set_mobile_base_speed(vw[0], vw[1], delta)
 
     return vw
 
 
-  def coverage_control(self, vor_prime, step=None):
+  def coverage_control(self, vor_prime, delta=None):
 
     u = np.zeros(2)
     for color, val in vor_prime.items():
@@ -83,7 +83,7 @@ class Robot:
     ])
     vw = np.array([[1,0], [0,1]]) @ R @ u
 
-    self.set_mobile_base_speed(vw[0], vw[1], step)
+    self.set_mobile_base_speed(vw[0], vw[1], delta)
     return vw
 
   def mix_color(self, vor_prime):
