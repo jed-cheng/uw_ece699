@@ -97,3 +97,14 @@ class Emotion(Enum):
     PENSIVENESS = 22
     DISTRACTION = 23
     ADMIRATION = 24
+
+
+class Chord(Enum):
+  MAJOR = 1,
+  MINOR = 2,
+  AUGMENTED = 3,
+  DIMINISHED = 4,
+  SEVENTH = 5,
+  SUSPENDED = 6,
+  EXTENDED = 7,
+  ADDED = 8,

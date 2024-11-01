@@ -1,5 +1,22 @@
 from utils import Color, Emotion
 
+# chord to emotion
+class EmotionPipeline:
+  def __init__(self):
+    self.emotions = None
+  
+  def receive_chords(self, chords):
+    self.chords = chords
+
+  def predict_emotions(self):
+    emotions = [Emotion.ANGER for chord in self.chords]
+    self.emotions = emotions
+    return emotions
+  
+  def get_emotions(self):
+    return self.emotions
+
+
 
 class LocationPipeline:
   def __init__(self):

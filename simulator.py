@@ -210,23 +210,23 @@ if __name__ == "__main__":
   sim.plot()
 
   for i in range(1000):
-    # if i % 100 == 0 and i < 2400:
-    #   idx = i // 100
-    #   color_pipe.receive_emotions([emotions[idx]])
-    #   colors = color_pipe.predict_colors()
+    if i % 200 == 0:
+      idx = i // 100
+      color_pipe.receive_emotions([emotions[idx]])
+      colors = color_pipe.predict_colors()
 
-    #   location_pipe.receive_emotions([emotions[idx]])
-    #   locations = location_pipe.predict_locations()
+      location_pipe.receive_emotions([emotions[idx]])
+      locations = location_pipe.predict_locations()
 
-    #   density_functions = [
-    #     DensityFunction(
-    #       type='gaussian',
-    #       color=color_pipe.get_colors()[j].value,
-    #       center=location_pipe.get_locations()[j],
-    #       variance=[3, 3]
-    #     ) for j in range(len(colors))
-    #   ]
-    #   print('iteration', i)
+      density_functions = [
+        DensityFunction(
+          type='gaussian',
+          color=color_pipe.get_colors()[j].value,
+          center=location_pipe.get_locations()[j],
+          variance=[3, 3]
+        ) for j in range(len(colors))
+      ]
+      print('iteration', i)
 
     vor_robots, vor_prime = swarm.color_coverage_control(density_functions)
 
