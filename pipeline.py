@@ -5,20 +5,44 @@ class LocationPipeline:
   def __init__(self):
     self.locations = None
     self.emotions = None
-    # evenly map emotions to locations on the cicle with radius 5
+
+    eight_divide_1 = 2.121320343559643
+    eight_divide_2 = eight_divide_1 * 2
+    eight_divide_3 = eight_divide_1 * 3
     self.emotion_to_location = {
-      Emotion.EXCITED: [5, 0],
-      Emotion.HAPPY: [4, 3],
-      Emotion.PLEASESD: [3, 4],
-      Emotion.RELAXED: [0, 5],
-      Emotion.PEACEFUL: [-3, 4],
-      Emotion.CALM: [-4, 3],
-      Emotion.SAD: [-5, 0],
-      Emotion.BORED: [-4, -3],
-      Emotion.SLEEPY: [-3, -4],
-      Emotion.ANGRY: [0, -5],
-      Emotion.NERVOUS: [3, -4],
-      Emotion.ANNOYING: [4, -3],
+
+      Emotion.TERROR: [3, 0],
+      Emotion.FEAR: [6, 0],
+      Emotion.APPREHENSION: [9, 0],
+
+      Emotion.ECSTASY: [0, 3],
+      Emotion.JOY: [0, 6],
+      Emotion.SERENITY: [0, 9],
+
+      Emotion.RAGE: [-3, 0],
+      Emotion.ANGER: [-2, 0],
+      Emotion.ANNOYANCE: [-1, 2],
+
+
+      Emotion.GRIEF: [0, -3],
+      Emotion.SADNESS: [0, -6],
+      Emotion.PENSIVENESS: [0, -9],
+
+      Emotion.AMAZEMENT: [eight_divide_1, -eight_divide_1],
+      Emotion.SURPRISE: [eight_divide_2, -eight_divide_2],
+      Emotion.DISTRACTION: [eight_divide_3, -eight_divide_3],
+      
+      Emotion.LOATHING: [-eight_divide_1, -eight_divide_1],
+      Emotion.DISGUST: [-eight_divide_2, -eight_divide_2],
+      Emotion.BOREDOM: [-eight_divide_3, -eight_divide_3],
+
+      Emotion.ADMIRATION: [eight_divide_1, eight_divide_1],
+      Emotion.TRUST: [eight_divide_2, eight_divide_2],
+      Emotion.ACCEPTANCE: [eight_divide_3, eight_divide_3],
+
+      Emotion.VIGILANCE: [-eight_divide_1, eight_divide_1],
+      Emotion.ANTICIPATION: [-eight_divide_2, eight_divide_2],
+      Emotion.INTEREST: [-eight_divide_3, eight_divide_3],
     }
 
   def receive_emotions(self, emotions):
@@ -42,18 +66,37 @@ class ColorPipeline:
     self.emotions = None
     self.colors = None
     self.emotion_to_color = {
-      Emotion.EXCITED: Color.YELLOW,
-      Emotion.HAPPY: Color.GREEN,
-      Emotion.PLEASESD: Color.BLUE,
-      Emotion.RELAXED: Color.GRAY,
-      Emotion.PEACEFUL: Color.PURPLE,
-      Emotion.CALM: Color.LIGHT_BLUE,
-      Emotion.SAD: Color.BLUE,
-      Emotion.BORED: Color.GRAY,
-      Emotion.SLEEPY: Color.LIGHT_GREEN,
-      Emotion.ANGRY: Color.RED,
-      Emotion.NERVOUS: Color.ORANGE,
-      Emotion.ANNOYING: Color.YELLOW_RED,
+      Emotion.TERROR: Color.TERROR_COLOR,
+      Emotion.FEAR: Color.FEAR_COLOR,
+      Emotion.APPREHENSION: Color.APPREHENSION_COLOR,
+      
+      Emotion.ECSTASY: Color.ECSTASY_COLOR,
+      Emotion.JOY: Color.ECSTASY_COLOR,
+      Emotion.SERENITY: Color.SERENITY_COLOR,
+      
+      Emotion.RAGE: Color.RAGE_COLOR,
+      Emotion.ANGER: Color.ANGER_COLOR,
+      Emotion.ANNOYANCE: Color.ANGER_COLOR,
+      
+      Emotion.GRIEF: Color.GRIEF_COLOR,
+      Emotion.SADNESS: Color.GRIEF_COLOR,
+      Emotion.PENSIVENESS: Color.PENSIVENESS_COLOR,
+      
+      Emotion.AMAZEMENT: Color.AMAZEMENT_COLOR,
+      Emotion.SURPRISE: Color.TERROR_COLOR,
+      Emotion.DISTRACTION: Color.DISTRACTION_COLOR,
+      
+      Emotion.LOATHING: Color.LOATHING_COLOR,
+      Emotion.DISGUST: Color.SERENITY_COLOR,
+      Emotion.BOREDOM: Color.BOREDOM_COLOR,
+      
+      Emotion.ADMIRATION: Color.TERROR_COLOR,
+      Emotion.TRUST: Color.TERROR_COLOR,
+      Emotion.ACCEPTANCE: Color.TERROR_COLOR,
+      
+      Emotion.VIGILANCE: Color.VIGILANCE_COLOR,
+      Emotion.ANTICIPATION: Color.SERENITY_COLOR,
+      Emotion.INTEREST: Color.INTEREST_COLOR
     }
 
   def receive_emotions(self, emotions):
@@ -70,13 +113,12 @@ class ColorPipeline:
 
 if __name__ == "__main__":
   pipeline = ColorPipeline()
-  emotions = [Emotion.EXCITED, Emotion.HAPPY, Emotion.PLEASESD]
+  emotions = [Emotion.ACCEPTANCE, Emotion.ANGER, Emotion.ANTICIPATION, Emotion.ADMIRATION]
   pipeline.receive_emotions(emotions)
   colors = pipeline.predict_colors()
-  print(colors) # ['CYAN', 'MAGENTA', 'YELLOW']
+  print(colors) 
 
   localtion_pipeline = LocationPipeline()
-  emotions = [Emotion.EXCITED, Emotion.HAPPY, Emotion.PLEASESD]
   localtion_pipeline.receive_emotions(emotions)
   locations = localtion_pipeline.predict_locations()
-  print(locations) # [[5, 0], [4, 3], [3, 4]]
+  print(locations)

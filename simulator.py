@@ -150,7 +150,7 @@ if __name__ == "__main__":
   robot_1 = Robot( 
     robot_pose=[0, -5, 0.0],
     equiped_color=[Color.CYAN.value, Color.MAGENTA.value],
-    K=5
+    K=1
   )
   robot_2 = Robot( 
     robot_pose=[0, 5, 0.0],
@@ -172,20 +172,20 @@ if __name__ == "__main__":
   robots = [robot_1, robot_2]
 
 
-  # density_functions = [
-  #   # DensityFunction(
-  #   #   type='gaussian',
-  #   #   color=Color.CYAN.value,
-  #   #   center=[5, 0],
-  #   #   variance=[1, 1]
-  #   # ),
-  #   # DensityFunction(
-  #   #   type='gaussian',
-  #   #   color=Color.MAGENTA.value,
-  #   #   center=[-5, 0],
-  #   #   variance=[1, 1]
-  #   # ),
-  # ]
+  density_functions = [
+    DensityFunction(
+      type='gaussian',
+      color=Color.CYAN.value,
+      center=[5, 0],
+      variance=[1, 1]
+    ),
+    DensityFunction(
+      type='gaussian',
+      color=Color.MAGENTA.value,
+      center=[-5, 0],
+      variance=[1, 1]
+    ),
+  ]
 
   env = np.array([
     [10, 10],
@@ -200,31 +200,33 @@ if __name__ == "__main__":
 
   color_pipe = ColorPipeline()
   location_pipe = LocationPipeline()
-  # first five emoions
-  emotions = [Emotion.EXCITED, Emotion.HAPPY, Emotion.PLEASESD, Emotion.RELAXED, Emotion.PEACEFUL]
+  
+  # get all emotions of Emotion
+  emotions = list(Emotion)
+
 
   sim.plot_environment(env)
   sim.plot_swarm(swarm)
   sim.plot()
 
-  for i in range(600):
-    if i % 100 == 0 and i < 500:
-      idx = i // 100
-      color_pipe.receive_emotions([emotions[idx]])
-      colors = color_pipe.predict_colors()
+  for i in range(1000):
+    # if i % 100 == 0 and i < 2400:
+    #   idx = i // 100
+    #   color_pipe.receive_emotions([emotions[idx]])
+    #   colors = color_pipe.predict_colors()
 
-      location_pipe.receive_emotions([emotions[idx]])
-      locations = location_pipe.predict_locations()
+    #   location_pipe.receive_emotions([emotions[idx]])
+    #   locations = location_pipe.predict_locations()
 
-      density_functions = [
-        DensityFunction(
-          type='gaussian',
-          color=color_pipe.get_colors()[j].value,
-          center=location_pipe.get_locations()[j],
-          variance=[3, 3]
-        ) for j in range(len(colors))
-      ]
-      print('iteration', i)
+    #   density_functions = [
+    #     DensityFunction(
+    #       type='gaussian',
+    #       color=color_pipe.get_colors()[j].value,
+    #       center=location_pipe.get_locations()[j],
+    #       variance=[3, 3]
+    #     ) for j in range(len(colors))
+    #   ]
+    #   print('iteration', i)
 
     vor_robots, vor_prime = swarm.color_coverage_control(density_functions)
 
