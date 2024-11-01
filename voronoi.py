@@ -4,8 +4,6 @@ from scipy.spatial import Delaunay, Voronoi, voronoi_plot_2d
 
 from utils import Color, DensityFunction
 
-# from converage_control import mirror_robots_about_environment, DensityFunction
-
 
 def tri_gauss_points(n):
     if n == 1:
@@ -187,8 +185,8 @@ if __name__ == '__main__':
     ])
 
     # gaussian density function mean at (0,0) and variance 1
-    phi = lambda x, y: np.exp(-0.5 * (x**2 + y**2))/ (2 * np.pi)
-    density_function = DensityFunction('gaussian',phi, None)
+    func = lambda x, y: np.exp(-0.5 * (x**2 + y**2))/ (2 * np.pi)
+    density_function = DensityFunction('gaussian',func, None)
 
     G, area = voronoi_centroids(vc, density_function)
 

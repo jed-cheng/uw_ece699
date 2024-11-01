@@ -119,6 +119,7 @@ class Simulator:
   def plot_voronoi(self, vor_centroid, vor_cell, 
     refresh=True,
     centroid_color='black',
+    boundary_color='black',
     centroid_size=0.2
   ):
 
@@ -131,7 +132,7 @@ class Simulator:
       self.axes.add_patch(p)
 
     for cell in vor_cell:
-      p = patches.Polygon(cell, fill=False, closed=True)
+      p = patches.Polygon(cell, fill=False, closed=True, color=boundary_color)
       self.p_vor_cell.append(p)
       self.axes.add_patch(p)
 
@@ -180,15 +181,15 @@ if __name__ == "__main__":
   density_functions = [
     DensityFunction(
       type='gaussian',
-      phi = lambda x, y: np.exp(-0.5 * ((x-5)**2 + y**2))/ (2 * np.pi),
       color=Color.CYAN.value,
-      center=[5, 0]
+      center=[5, 0],
+      variance=[2, 2]
     ),
     DensityFunction(
       type='gaussian',
-      phi = lambda x, y: np.exp(-0.5 * ((x+5)**2 + y**2)*2)/ (2 * np.pi),
       color=Color.MAGENTA.value,
-      center=[-5, 0]
+      center=[-5, 0],
+      variance=[2, 2]
     ),
   ]
 
@@ -218,7 +219,7 @@ if __name__ == "__main__":
     for j in range(len(robots)):
       robot = robots[j]
       vor_robot = vor_robots[j]
-      vw = robot.coverage_control(vor_robot, step=10)
+      vw = robot.coverage_control(vor_robot)
       color = robot.mix_color(vor_robot)
 
       print(j,vw, color)
@@ -232,8 +233,8 @@ if __name__ == "__main__":
 
     sim.plot_swarm(swarm)
     sim.refresh_voronoi()
-    sim.plot_voronoi(vor_prime[Color.CYAN.value][0], vor_prime[Color.CYAN.value][1], refresh=False, centroid_color='blue')
-    # sim.plot_voronoi(vor_prime[Color.MAGENTA.value][0], vor_prime[Color.MAGENTA.value][1], refresh=False, centroid_color='red')
+    # sim.plot_voronoi(vor_prime[Color.CYAN.value][0], vor_prime[Color.CYAN.value][1], refresh=False, centroid_color=Color.CYAN.value, boundary_color=Color.CYAN.value)
+    sim.plot_voronoi(vor_prime[Color.MAGENTA.value][0], vor_prime[Color.MAGENTA.value][1], refresh=False, centroid_color=Color.MAGENTA.value, boundary_color=Color.MAGENTA.value)
 
 
     sim.update_plot()

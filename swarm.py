@@ -88,7 +88,7 @@ class Swarm:
       cyan_density_functions = prime_density_functions_map[Color.CYAN.value]
       self.cyan_density_functions = DensityFunction(
           type='gaussian',
-          phi = lambda x, y: max([value * prime_density_function.phi(x, y) for value, prime_density_function in cyan_density_functions]) if len(cyan_density_functions) > 0 else 0,
+          func = lambda x, y: max([value * prime_density_function.phi(x, y) for value, prime_density_function in cyan_density_functions]) if len(cyan_density_functions) > 0 else 0,
           color=Color.CYAN.value,
         )
       
@@ -96,16 +96,16 @@ class Swarm:
       magenta_density_functions = prime_density_functions_map[Color.MAGENTA.value]
       self.magenta_density_functions = DensityFunction(
           type='gaussian',
-          phi = lambda x, y: max([value * prime_density_function.phi(x, y) for value, prime_density_function in magenta_density_functions]) if len(magenta_density_functions) > 0 else 0,
           color=Color.MAGENTA.value,
+          func = lambda x, y: max([value * prime_density_function.phi(x, y) for value, prime_density_function in magenta_density_functions]) if len(magenta_density_functions) > 0 else 0,
         )
 
     if len(prime_density_functions_map[Color.YELLOW.value]):
       yellow_density_functions = prime_density_functions_map[Color.YELLOW.value]
       self.yellow_density_functions = DensityFunction(
           type='gaussian',
-          phi = lambda x, y: max([value * prime_density_function.phi(x, y) for value, prime_density_function in yellow_density_functions]) if len(yellow_density_functions) > 0 else 0,
           color=Color.YELLOW.value,
+          func = lambda x, y: max([value * prime_density_function.phi(x, y) for value, prime_density_function in yellow_density_functions]) if len(yellow_density_functions) > 0 else 0,
         )
     # return prime_density_functions_map
 
@@ -212,15 +212,15 @@ if __name__ == "__main__":
   density_functions = [
     DensityFunction(
       type='gaussian',
-      phi = lambda x, y: np.exp(-0.5 * (x**2 + y**2))/ (2 * np.pi),
       color=Color.CYAN.value,
-      center=[0, 0]
+      center=[0, 0],
+      variance=[2, 2]
     ),
     DensityFunction(
       type='gaussian',
-      phi = lambda x, y: np.exp(-0.5 * ((x-5)**2 + (y-5)**2))/ (2 * np.pi),
       color=Color.MAGENTA.value,
-      center=[5, 5]
+      center=[5, 5],
+      vraiance=[2, 2]
     ),
   ]
 
