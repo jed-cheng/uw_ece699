@@ -56,8 +56,10 @@ class Simulator:
 
     
     for density_function in density_functions:
-      xmin, xmax = density_function.center[0] - range, density_function.center[0] + range
-      ymin, ymax  = density_function.center[1] - range, density_function.center[1] + range
+      mux, muy = density_function.center
+      varx, vary = density_function.variance
+      xmin, xmax = mux - varx*5, mux + varx*5
+      ymin, ymax  = muy - vary*5, muy + vary*5
 
       x = np.linspace(xmin, xmax, resolution)
       y = np.linspace(ymin, ymax, resolution)
@@ -175,7 +177,7 @@ if __name__ == "__main__":
     robot_pose=[0, 0, 0.0],
     equiped_color=[Color.CYAN.value, Color.MAGENTA.value]
   )
-  robots = [robot_1, robot_2, robot_3, robot_4, robot_5]
+  robots = [robot_1]
 
 
   density_functions = [
@@ -233,9 +235,11 @@ if __name__ == "__main__":
 
     sim.plot_swarm(swarm)
     sim.refresh_voronoi()
-    # sim.plot_voronoi(vor_prime[Color.CYAN.value][0], vor_prime[Color.CYAN.value][1], refresh=False, centroid_color=Color.CYAN.value, boundary_color=Color.CYAN.value)
-    sim.plot_voronoi(vor_prime[Color.MAGENTA.value][0], vor_prime[Color.MAGENTA.value][1], refresh=False, centroid_color=Color.MAGENTA.value, boundary_color=Color.MAGENTA.value)
-
+    for color, val in vor_prime.items():
+      if val is None:
+        continue
+      centroid, cell, area = val
+      sim.plot_voronoi(centroid, cell, refresh=False, centroid_color=color, boundary_color=color)
 
     sim.update_plot()
     time.sleep(0.01)
