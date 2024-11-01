@@ -1,110 +1,82 @@
-from enum import Enum
-# a pipeline that receives audio data and outputs music features
+from utils import Color, Emotion
 
 
-class MusicPipeline:
+class LocationPipeline:
   def __init__(self):
-    self.audio_data = None
-    self.music_features = None
-
-  def receive_audio_data(self, audio_data):
-    self.audio_data = audio_data
-
-  def extract_chords(self):
-    pass
-
-  def get_music_features(self):
-    pass
-
-
-# a pipeline that receives music features and outputs emotions
-class Emotion(Enum):
-  EXCITED = 1
-  HAPPY = 2
-  PLEASESD = 3
-  RELAXED = 4
-  PEACEFUL = 5
-  CALM = 6
-  SAD = 7
-  BORED = 8
-  SLEEPY = 9
-  ANGRY = 10
-  NERVOUS = 11
-  ANNOYING = 12
-
-
-class EmotionPipeline:
-  def __init__(self):
-    self.music_features = None
+    self.locations = None
     self.emotions = None
+    # evenly map emotions to locations on the cicle with radius 5
+    self.emotion_to_location = {
+      Emotion.EXCITED: [5, 0],
+      Emotion.HAPPY: [4, 3],
+      Emotion.PLEASESD: [3, 4],
+      Emotion.RELAXED: [0, 5],
+      Emotion.PEACEFUL: [-3, 4],
+      Emotion.CALM: [-4, 3],
+      Emotion.SAD: [-5, 0],
+      Emotion.BORED: [-4, -3],
+      Emotion.SLEEPY: [-3, -4],
+      Emotion.ANGRY: [0, -5],
+      Emotion.NERVOUS: [3, -4],
+      Emotion.ANNOYING: [4, -3],
+    }
 
-  def receive_music_features(self, music_features):
-    self.music_features = music_features
+  def receive_emotions(self, emotions):
+    self.emotions = emotions
 
-  def predict_emotions(self):
-    pass
+  def predict_locations(self):
+    locations = [self.emotion_to_location[emotion] for emotion in self.emotions]
+    self.locations = locations
+    return locations
 
-  def get_emotions(self):
-    pass
 
-# color with hex values
-class Color(Enum):
-  YELLOW = '#FFFF00'
-  GREEN = '#008000'
-  BLUE = '#0000FF'
-  GRAY = '#808080'
-  PURPLE = '#800080'
-  ORANGE = '#FFA500'
-  RED = '#FF0000'
-  BLACK = '#000000'
-  LIGHT_BLUE = '#ADD8E6'
-  LIGHT_GREEN = '#90EE90'
-  YELLOW_RED = '#FFD700'
+
+  def get_locations(self):
+    return self.locations
+
 
 
 # a pipeline that receives emotions and outputs colors
-class ColorPipline:
+class ColorPipeline:
   def __init__(self):
     self.emotions = None
     self.colors = None
+    self.emotion_to_color = {
+      Emotion.EXCITED: Color.YELLOW,
+      Emotion.HAPPY: Color.GREEN,
+      Emotion.PLEASESD: Color.BLUE,
+      Emotion.RELAXED: Color.GRAY,
+      Emotion.PEACEFUL: Color.PURPLE,
+      Emotion.CALM: Color.LIGHT_BLUE,
+      Emotion.SAD: Color.BLUE,
+      Emotion.BORED: Color.GRAY,
+      Emotion.SLEEPY: Color.LIGHT_GREEN,
+      Emotion.ANGRY: Color.RED,
+      Emotion.NERVOUS: Color.ORANGE,
+      Emotion.ANNOYING: Color.YELLOW_RED,
+    }
 
   def receive_emotions(self, emotions):
     self.emotions = emotions
 
   def predict_colors(self):
-    pass
+    colors = [self.emotion_to_color[emotion] for emotion in self.emotions]
+    self.colors = colors
+    return colors
 
   def get_colors(self):
-    pass
+    return self.colors
 
 
-# a pipeline that receives emotion and outputs shapes
-class ShapePipeline:
-  def __init__(self):
-    self.emotions = None
-    self.shapes = None
+if __name__ == "__main__":
+  pipeline = ColorPipeline()
+  emotions = [Emotion.EXCITED, Emotion.HAPPY, Emotion.PLEASESD]
+  pipeline.receive_emotions(emotions)
+  colors = pipeline.predict_colors()
+  print(colors) # ['CYAN', 'MAGENTA', 'YELLOW']
 
-  def receive_emotions(self, emotions):
-    self.emotions = emotions
-
-  def predict_shapes(self):
-    pass
-
-  def get_shapes(self):
-    pass
-
-# a pipeline that receives emotions and outputs centers coordinates
-class CenterPipeline:
-  def __init__(self):
-    self.emotions = None
-    self.centers = None
-
-  def receive_emotions(self, emotions):
-    self.emotions = emotions
-
-  def predict_centers(self):
-    pass
-
-  def get_centers(self):
-    pass
-
+  localtion_pipeline = LocationPipeline()
+  emotions = [Emotion.EXCITED, Emotion.HAPPY, Emotion.PLEASESD]
+  localtion_pipeline.receive_emotions(emotions)
+  locations = localtion_pipeline.predict_locations()
+  print(locations) # [[5, 0], [4, 3], [3, 4]]

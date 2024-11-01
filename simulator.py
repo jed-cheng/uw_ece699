@@ -6,13 +6,13 @@ from matplotlib.colors import to_rgba
 import math
 from swarm import Swarm
 from robot import Robot
-from scipy.spatial import Voronoi
 import time
+from pipeline import ColorPipeline, LocationPipeline
 
-from utils import Color, DensityFunction
+from utils import Color, DensityFunction, Emotion
 
 class Simulator:
-  def __init__(self, swarm, environment, **kwargs):
+  def __init__(self, swarm, environment):
     self.swarm = swarm
     self.environment = environment
 
@@ -23,11 +23,6 @@ class Simulator:
     self.p_trails = [[] for _ in range(len(swarm.robots))]
     self.p_vor_centroid = []
     self.p_vor_cell = []
-
-
-
-    # plt.ion()
-    # plt.show(block=True)
 
 
   def plot_environment(self, environment):
@@ -113,9 +108,6 @@ class Simulator:
         self.p_trails[i].append(p_segment)
         self.axes.add_line(p_segment)
 
-
-
-
   def plot_voronoi(self, vor_centroid, vor_cell, 
     refresh=True,
     centroid_color='black',
@@ -124,7 +116,7 @@ class Simulator:
   ):
 
     if refresh:
-      self.refresh_voronoi()
+      self.clear_voronoi()
 
     for centroid in vor_centroid:
       p = patches.Circle(centroid, radius=centroid_size, fill=True, color=centroid_color)
@@ -136,7 +128,7 @@ class Simulator:
       self.p_vor_cell.append(p)
       self.axes.add_patch(p)
 
-  def refresh_voronoi(self):
+  def clear_voronoi(self):
     for p_vor_centroid in self.p_vor_centroid:
       p_vor_centroid.remove()
     for p_vor_cell in self.p_vor_cell:
@@ -158,12 +150,12 @@ if __name__ == "__main__":
   robot_1 = Robot( 
     robot_pose=[0, -5, 0.0],
     equiped_color=[Color.CYAN.value, Color.MAGENTA.value],
-    K=2
+    K=5
   )
   robot_2 = Robot( 
     robot_pose=[0, 5, 0.0],
     equiped_color=[Color.CYAN.value, Color.MAGENTA.value],
-    K=2
+    K=1
   )
   robot_3 = Robot( 
     robot_pose=[-5, -6, 0.0],
@@ -180,20 +172,20 @@ if __name__ == "__main__":
   robots = [robot_1, robot_2]
 
 
-  density_functions = [
-    DensityFunction(
-      type='gaussian',
-      color=Color.CYAN.value,
-      center=[5, 0],
-      variance=[1, 1]
-    ),
-    DensityFunction(
-      type='gaussian',
-      color=Color.MAGENTA.value,
-      center=[-5, 0],
-      variance=[1, 1]
-    ),
-  ]
+  # density_functions = [
+  #   # DensityFunction(
+  #   #   type='gaussian',
+  #   #   color=Color.CYAN.value,
+  #   #   center=[5, 0],
+  #   #   variance=[1, 1]
+  #   # ),
+  #   # DensityFunction(
+  #   #   type='gaussian',
+  #   #   color=Color.MAGENTA.value,
+  #   #   center=[-5, 0],
+  #   #   variance=[1, 1]
+  #   # ),
+  # ]
 
   env = np.array([
     [10, 10],
@@ -203,40 +195,54 @@ if __name__ == "__main__":
     [10, 10]
   ])
 
-  swarm = Swarm(robots, env, density_functions)
-
+  swarm = Swarm(robots, env)
   sim = Simulator(swarm, env)
-  # vor_centroid, vor_cell, vor_area = swarm.coverage_control(robots, density_functions[0])
+
+  color_pipe = ColorPipeline()
+  location_pipe = LocationPipeline()
+  # first five emoions
+  emotions = [Emotion.EXCITED, Emotion.HAPPY, Emotion.PLEASESD, Emotion.RELAXED, Emotion.PEACEFUL]
 
   sim.plot_environment(env)
-  sim.plot_density_functions(density_functions)
   sim.plot_swarm(swarm)
-  # sim.plot_voronoi(vor_centroid, vor_cell)
   sim.plot()
 
-  for i in range(500):
-    # vor_centroid, vor_cell, vor_area = swarm.coverage_control(robots, density_functions[0])
-    vor_robots, vor_prime = swarm.color_coverage_control()
+  for i in range(600):
+    if i % 100 == 0 and i < 500:
+      idx = i // 100
+      color_pipe.receive_emotions([emotions[idx]])
+      colors = color_pipe.predict_colors()
 
+      location_pipe.receive_emotions([emotions[idx]])
+      locations = location_pipe.predict_locations()
 
+      density_functions = [
+        DensityFunction(
+          type='gaussian',
+          color=color_pipe.get_colors()[j].value,
+          center=location_pipe.get_locations()[j],
+          variance=[3, 3]
+        ) for j in range(len(colors))
+      ]
+      print('iteration', i)
+
+    vor_robots, vor_prime = swarm.color_coverage_control(density_functions)
 
     for j in range(len(robots)):
       robot = robots[j]
       vor_robot = vor_robots[j]
+
+      if vor_robot is None:
+        continue
+      
       vw = robot.coverage_control(vor_robot, delta=10)
       color = robot.mix_color(vor_robot)
 
       print(j,vw, color)
-      
-
-    # for j, robot in enumerate(robots):
-    #   vw = robot.move_to_point(vor_centroid[j], step=10)
-
-    #   print(j, vw)
 
 
     sim.plot_swarm(swarm)
-    sim.refresh_voronoi()
+    sim.clear_voronoi()
     for color, val in vor_prime.items():
       if val is None:
         continue

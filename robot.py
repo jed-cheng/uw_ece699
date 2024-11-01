@@ -68,10 +68,10 @@ class Robot:
     return vw
 
 
-  def coverage_control(self, vor_prime, delta=None):
+  def coverage_control(self, vor_robot, delta=None):
 
     u = np.zeros(2)
-    for color, val in vor_prime.items():
+    for color, val in vor_robot.items():
       if val is None:
         continue
       centroid, _, area = val
@@ -86,16 +86,16 @@ class Robot:
     self.set_mobile_base_speed(vw[0], vw[1], delta)
     return vw
 
-  def mix_color(self, vor_prime):
+  def mix_color(self, vor_robot):
     color = np.zeros(3)
     denorm = 0
-    for c, val in vor_prime.items():
+    for c, val in vor_robot.items():
       if val is None:
         continue
       _, _, area = val
       denorm += area
 
-    for c, val in vor_prime.items():
+    for c, val in vor_robot.items():
       if val is None:
         continue
 

@@ -23,15 +23,13 @@ class Swarm:
   def __init__(self, 
     robots,
     environment,
-    density_functions,
   ):
     self.robots = robots
     self.environment = environment
-    self.density_functions = density_functions
     self.cyan_density_functions = None
     self.magenta_density_functions = None
     self.yellow_density_functions = None
-    self.get_prime_density_functions(density_functions)
+    # self.get_prime_density_functions(density_functions)
 
 
 
@@ -111,7 +109,10 @@ class Swarm:
 
 
 
-  def color_coverage_control(self):
+  def color_coverage_control(self, density_functions = None):
+    if density_functions is not None:
+      self.get_prime_density_functions(density_functions)
+    
     vor_robots = dict({i: 
       dict({
         Color.CYAN.value: None,
@@ -123,6 +124,9 @@ class Swarm:
       Color.MAGENTA.value: None,
       Color.YELLOW.value: None
     })
+
+    if self.cyan_density_functions is None and self.magenta_density_functions is None and self.yellow_density_functions is None:
+      return vor_robots, vor_prime
 
     for prime_color in [Color.CYAN.value, Color.MAGENTA.value, Color.YELLOW.value]:
       robots_with_color_list = [(i, robot) for i, robot in enumerate(self.robots) if prime_color in robot.equiped_color]
@@ -246,36 +250,4 @@ if __name__ == "__main__":
   for i in range(len(robots)):
     robot = robots[i]
     robot.coverage_control(vor_robots[i])
-
-
-  # for i in range(500):
-  #   vor_centroid, vor_cell, area = swarm.converage_control()
-  #   for i, robot in enumerate(robots):
-  #     robot.move_to_point(vor_centroid[i])
-
-  #   swarm.update_plot()
-  #   time.sleep(0.001)
   pass
-# Expected Output:
-#  centriod
-#  [[ 0.79206603  0.79206603]
-#  [-0.75852752 -0.75852752]
-#  [ 0.75852752 -0.75852752]
-#  [-0.79206603  0.79206603]]
-#  cell
-# [array([[10.,  0.],
-#         [ 0.,  0.],
-#         [ 0., 10.],
-#         [10., 10.]]) array([[  0.,   0.],
-#                             [  0., -10.],
-#                             [-10., -10.],
-#                             [-10.,   0.]]) array([[  0.,   0.],
-#                                                   [ 10.,   0.],
-#                                                   [ 10., -10.],
-#                                                   [  0., -10.]])
-#  array([[-10.,   0.],
-#         [  0.,   0.],
-#         [  0.,  10.],
-#         [-10.,  10.]])]
-#  area
-# [0.28504551 0.25842994 0.25842994 0.28504551]

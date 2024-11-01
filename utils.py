@@ -27,3 +27,28 @@ class Color(Enum):
   CYAN = '#00FFFF'
   MAGENTA = '#FF00FF'
   YELLOW = '#FFFF00'
+  GREEN = '#008000'
+  BLUE = '#0000FF'
+  GRAY = '#808080'
+  PURPLE = '#800080'
+  ORANGE = '#FFA500'
+  RED = '#FF0000'
+  BLACK = '#000000'
+  LIGHT_BLUE = '#ADD8E6'
+  LIGHT_GREEN = '#90EE90'
+  YELLOW_RED = '#FFD700'
+
+
+class Emotion(Enum):
+  EXCITED = 1
+  HAPPY = 2
+  PLEASESD = 3
+  RELAXED = 4
+  PEACEFUL = 5
+  CALM = 6
+  SAD = 7
+  BORED = 8
+  SLEEPY = 9
+  ANGRY = 10
+  NERVOUS = 11
+  ANNOYING = 12
