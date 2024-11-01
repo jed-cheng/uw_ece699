@@ -105,7 +105,7 @@ class Swarm:
           color=Color.YELLOW.value,
           func = lambda x, y: max([value * prime_density_function.phi(x, y) for value, prime_density_function in yellow_density_functions]) if len(yellow_density_functions) > 0 else 0,
         )
-    # return prime_density_functions_map
+    return prime_density_functions_map
 
 
 

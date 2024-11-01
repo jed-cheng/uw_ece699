@@ -75,18 +75,20 @@ class Robot:
       if val is None:
         continue
       centroid, _, area = val
+      # withouth the area, the robot will move to the centroid of the voronoi cell
       u += (centroid - self.robot_pose[:2]) * area
     u = self.K * u
     R = np.array([
       [math.cos(self.robot_pose[2]), math.sin(self.robot_pose[2])],
       [-math.sin(self.robot_pose[2]), math.cos(self.robot_pose[2])]
     ])
+    #
     vw = np.array([[1,0], [0,1]]) @ R @ u
 
     self.set_mobile_base_speed(vw[0], vw[1], delta)
     return vw
 
-  def mix_color(self, vor_robot):
+  def mix_color(self, vor_robot, cyan_density, magenta_density, yellow_density):
     color = np.zeros(3)
     denorm = 0
     for c, val in vor_robot.items():
@@ -99,13 +101,14 @@ class Robot:
       if val is None:
         continue
 
+      x, y = self.robot_pose[:2]
       _, _, area = val
       if c == Color.CYAN.value:
-        color[0] = area / denorm
+        color[0] = area / denorm * cyan_density.phi(x, y)
       elif c == Color.MAGENTA.value:
-        color[1] = area / denorm
+        color[1] = area / denorm * magenta_density.phi(x, y)
       elif c == Color.YELLOW.value:
-        color[2] = area / denorm
+        color[2] = area / denorm * yellow_density.phi(x, y)
 
     color = 1 - color # rgb to cmy
     self.set_trail_color(color)

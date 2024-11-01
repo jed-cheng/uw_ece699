@@ -210,7 +210,7 @@ if __name__ == "__main__":
   sim.plot()
 
   for i in range(1000):
-    if i % 200 == 0:
+    if i % 100 == 0:
       idx = i // 100
       color_pipe.receive_emotions([emotions[idx]])
       colors = color_pipe.predict_colors()
@@ -226,7 +226,6 @@ if __name__ == "__main__":
           variance=[3, 3]
         ) for j in range(len(colors))
       ]
-      print('iteration', i)
 
     vor_robots, vor_prime = swarm.color_coverage_control(density_functions)
 
@@ -238,7 +237,11 @@ if __name__ == "__main__":
         continue
       
       vw = robot.coverage_control(vor_robot, delta=10)
-      color = robot.mix_color(vor_robot)
+      color = robot.mix_color(vor_robot,
+        swarm.cyan_density_functions,
+        swarm.magenta_density_functions,
+        swarm.yellow_density_functions
+       ) 
 
       print(j,vw, color)
 
@@ -251,6 +254,7 @@ if __name__ == "__main__":
       centroid, cell, area = val
       sim.plot_voronoi(centroid, cell, refresh=False, centroid_color=color, boundary_color=color)
 
+    # sim.plot_density_functions(density_functions)
     sim.update_plot()
     time.sleep(0.01)
 
