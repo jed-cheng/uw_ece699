@@ -20,7 +20,7 @@ class Simulator:
     self.p_env = None
     self.p_density = []
     self.p_robots = None
-    self.p_trails = None
+    self.p_trails = [[] for _ in range(len(swarm.robots))]
     self.p_vor_centroid = []
     self.p_vor_cell = []
 
@@ -86,16 +86,11 @@ class Simulator:
       for p in self.p_robots:
         p.remove()
 
-    if self.p_trails:
-      for p in self.p_trails:
-        p.remove()
 
     self.p_robots = []
-    self.p_trails = []
-    for robot in swarm.robots:
+    for i, robot in enumerate(swarm.robots):
       pose = robot.robot_pose
       size = robot.robot_size
-      trail = robot.trail
       R = np.array([[0.0, 1.0], [-1.0, 0.0]]) @ np.array([
         [math.cos(pose[2]), -math.sin(pose[2])],
         [math.sin(pose[2]), math.cos(pose[2])]
@@ -109,13 +104,16 @@ class Simulator:
       ])
 
       p_robot = patches.Polygon(t+v @ R.T, color=robot.robot_color, fill=True)
-      p_trail = Line2D(trail[:,0], trail[:,1], color=robot.trail_color, linewidth=robot.trail_width)
-
       self.p_robots.append(p_robot)
-      self.p_trails.append(p_trail)
-
       self.axes.add_patch(p_robot)
-      self.axes.add_line(p_trail)
+
+      if len(robot.trail) > 1:
+        segment = robot.trail[-2:]
+        p_segment = Line2D(segment[:,0], segment[:,1], color=robot.trail_color, linewidth=robot.trail_width)
+        self.p_trails[i].append(p_segment)
+        self.axes.add_line(p_segment)
+
+
 
 
   def plot_voronoi(self, vor_centroid, vor_cell, 
@@ -158,12 +156,14 @@ class Simulator:
 
 if __name__ == "__main__":
   robot_1 = Robot( 
-    robot_pose=[-5, -4, 0.0],
-    equiped_color=[Color.CYAN.value, Color.MAGENTA.value]
+    robot_pose=[0, -5, 0.0],
+    equiped_color=[Color.CYAN.value, Color.MAGENTA.value],
+    K=2
   )
   robot_2 = Robot( 
-    robot_pose=[-5, -5, 0.0],
-    equiped_color=[Color.CYAN.value, Color.MAGENTA.value]
+    robot_pose=[0, 5, 0.0],
+    equiped_color=[Color.CYAN.value, Color.MAGENTA.value],
+    K=2
   )
   robot_3 = Robot( 
     robot_pose=[-5, -6, 0.0],
@@ -177,7 +177,7 @@ if __name__ == "__main__":
     robot_pose=[0, 0, 0.0],
     equiped_color=[Color.CYAN.value, Color.MAGENTA.value]
   )
-  robots = [robot_1, robot_2, robot_3]
+  robots = [robot_1, robot_2]
 
 
   density_functions = [
@@ -187,12 +187,12 @@ if __name__ == "__main__":
       center=[5, 0],
       variance=[1, 1]
     ),
-    # DensityFunction(
-    #   type='gaussian',
-    #   color=Color.MAGENTA.value,
-    #   center=[-5, 0],
-    #   variance=[2, 2]
-    # ),
+    DensityFunction(
+      type='gaussian',
+      color=Color.MAGENTA.value,
+      center=[-5, 0],
+      variance=[1, 1]
+    ),
   ]
 
   env = np.array([
@@ -242,9 +242,6 @@ if __name__ == "__main__":
         continue
       centroid, cell, area = val
       sim.plot_voronoi(centroid, cell, refresh=False, centroid_color=color, boundary_color=color)
-
-    if i % 100 == 0:
-      density_functions[0].center -= np.array([1, 1])
 
     sim.update_plot()
     time.sleep(0.01)
