@@ -16,7 +16,8 @@ class Robot:
     robot_color = 'black',
     trail_width = 5,
     TIMEOUT_SET_MOBILE_BASE_SPEED = 0,
-    K = 1
+    K = 1,
+    L = 1
   ):
 
     self.robot_pose = robot_pose
@@ -33,6 +34,7 @@ class Robot:
     self.TIMEOUT_SET_MOBILE_BASE_SPEED = TIMEOUT_SET_MOBILE_BASE_SPEED
     self.TIMEOUT_GET_POSES = 0 # milliseconds
     self.K = K
+    self.L = L
 
     # initialize robot
     # self.__init_plot()
@@ -68,7 +70,7 @@ class Robot:
     return vw
 
 
-  def coverage_control(self, vor_robot, delta=None):
+  def coverage_control(self, vor_robot ,L = None, delta=None):
 
     u = np.zeros(2)
     for color, val in vor_robot.items():
@@ -89,7 +91,7 @@ class Robot:
     return vw
 
   def mix_color(self, vor_robot, cyan_density, magenta_density, yellow_density):
-    color = np.zeros(3)
+    color = np.zeros(4)
     denorm = 0
     for c, val in vor_robot.items():
       if val is None:
@@ -104,11 +106,17 @@ class Robot:
       x, y = self.robot_pose[:2]
       _, _, area = val
       if c == Color.CYAN.value:
-        color[0] = area / denorm * cyan_density.phi(x, y)
+        color[0] = area / denorm 
+        color[3] += cyan_density.phi(x, y)
       elif c == Color.MAGENTA.value:
-        color[1] = area / denorm * magenta_density.phi(x, y)
+        color[1] = area / denorm
+        color[3] += magenta_density.phi(x, y) 
       elif c == Color.YELLOW.value:
-        color[2] = area / denorm * yellow_density.phi(x, y)
+        color[2] = area / denorm
+        color[3] += yellow_density.phi(x, y)
+   
+      
+    color[3] = 1 - color[3]/3
 
     color = 1 - color # rgb to cmy
     self.set_trail_color(color)

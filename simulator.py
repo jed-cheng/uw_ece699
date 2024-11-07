@@ -226,8 +226,10 @@ if __name__ == "__main__":
           variance=[3, 3]
         ) for j in range(len(colors))
       ]
+      sim.plot_density_functions(density_functions)
 
     vor_robots, vor_prime = swarm.color_coverage_control(density_functions)
+
 
     for j in range(len(robots)):
       robot = robots[j]
@@ -236,7 +238,7 @@ if __name__ == "__main__":
       if vor_robot is None:
         continue
       
-      vw = robot.coverage_control(vor_robot, delta=10)
+      vw = robot.coverage_control(vor_robot, L=2, delta=10)
       color = robot.mix_color(vor_robot,
         swarm.cyan_density_functions,
         swarm.magenta_density_functions,
@@ -254,7 +256,7 @@ if __name__ == "__main__":
       centroid, cell, area = val
       sim.plot_voronoi(centroid, cell, refresh=False, centroid_color=color, boundary_color=color)
 
-    # sim.plot_density_functions(density_functions)
+
     sim.update_plot()
     time.sleep(0.01)
 
