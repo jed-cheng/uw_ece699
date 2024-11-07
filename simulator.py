@@ -238,7 +238,7 @@ if __name__ == "__main__":
       if vor_robot is None:
         continue
       
-      vw = robot.coverage_control(vor_robot, L=2, delta=10)
+      vw = robot.coverage_control(vor_robot, L=0.5, delta=10)
       color = robot.mix_color(vor_robot,
         swarm.cyan_density_functions,
         swarm.magenta_density_functions,

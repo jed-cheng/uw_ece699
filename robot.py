@@ -85,7 +85,8 @@ class Robot:
       [-math.sin(self.robot_pose[2]), math.cos(self.robot_pose[2])]
     ])
     #
-    vw = np.array([[1,0], [0,1]]) @ R @ u
+    L = L if L is not None else 1
+    vw = np.array([[1,0], [0,1/L]]) @ R @ u
 
     self.set_mobile_base_speed(vw[0], vw[1], delta)
     return vw
