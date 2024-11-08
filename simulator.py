@@ -170,6 +170,7 @@ class Simulator:
     self.figure.canvas.draw_idle()
     self.figure.canvas.flush_events()
 
+
 if __name__ == "__main__":
   robot_1 = Robot( 
     robot_pose=[0, -5, 0.0],
