@@ -39,7 +39,7 @@ class Simulator:
 
   def plot_density_functions(self, 
     density_functions, 
-    range=5, 
+    range=10, 
     resolution=100, 
     refresh=True,
 
@@ -51,30 +51,52 @@ class Simulator:
 
     
     for density_function in density_functions:
-      mux, muy = density_function.center
-      varx, vary = density_function.variance
-      xmin, xmax = mux - varx*5, mux + varx*5
-      ymin, ymax  = muy - vary*5, muy + vary*5
+      if density_function.shape is None:
+        mux, muy = density_function.center
+        varx, vary = density_function.variance
+        xmin, xmax = mux - varx*5, mux + varx*5
+        ymin, ymax  = muy - vary*5, muy + vary*5
 
-      x = np.linspace(xmin, xmax, resolution)
-      y = np.linspace(ymin, ymax, resolution)
-      X, Y = np.meshgrid(x, y)
+        x = np.linspace(xmin, xmax, resolution)
+        y = np.linspace(ymin, ymax, resolution)
+        X, Y = np.meshgrid(x, y)
 
-      Z = density_function.phi(X, Y)
-      Z_norm = Z.reshape(X.shape)
-      base_color = to_rgba(density_function.color)   
+        Z = density_function.phi(X, Y)
+        Z_norm = Z.reshape(X.shape)
+        base_color = to_rgba(density_function.color)   
 
-      rgba_image = np.zeros((Z.shape[0], Z.shape[1], 4))
-      rgba_image[..., :3] = base_color[:3]
-      alpha_exponent = 0.3
-      rgba_image[...,  3] = Z_norm**alpha_exponent         
-      p = self.axes.imshow(
-        rgba_image, 
-        extent=[xmin, xmax, ymin, ymax],
-        origin='lower',
-        aspect='auto'
-      )
-      self.p_density.append(p)
+        rgba_image = np.zeros((Z.shape[0], Z.shape[1], 4))
+        rgba_image[..., :3] = base_color[:3]
+        alpha_exponent = 0.3
+        rgba_image[...,  3] = Z_norm**alpha_exponent         
+        p = self.axes.imshow(
+          rgba_image, 
+          extent=[xmin, xmax, ymin, ymax],
+          origin='lower',
+          aspect='auto'
+        )
+        self.p_density.append(p)
+      else:
+        x = np.linspace(-range, range, resolution)
+        y = np.linspace(-range, range, resolution)
+        X, Y = np.meshgrid(x, y)
+
+        Z = density_function.phi(X, Y)
+        Z_norm = Z.reshape(X.shape)
+        base_color = to_rgba(density_function.color)   
+
+        rgba_image = np.zeros((Z.shape[0], Z.shape[1], 4))
+        rgba_image[..., :3] = base_color[:3]
+        alpha_exponent = 0.3
+        rgba_image[...,  3] = Z_norm**alpha_exponent         
+        p = self.axes.imshow(
+          rgba_image, 
+          extent=[-range, range, -range, range],
+          origin='lower',
+          aspect='auto'
+        )
+        self.p_density.append(p)
+
 
   def plot_swarm(self, swarm):
     if self.p_robots:
@@ -137,8 +159,10 @@ class Simulator:
     self.p_vor_cell = []
 
   def plot(self):
-    self.axes.autoscale()
-    self.axes.set_aspect('equal')
+    # self.axes.autoscale()
+    # self.axes.set_aspect('equal')
+    self.axes.set_xlim(-10, 10)  # Adjust the limits as needed
+    self.axes.set_ylim(-10, 10)  # Adjust the limits as needed
     plt.ion()
     plt.show()
 
@@ -169,22 +193,38 @@ if __name__ == "__main__":
     robot_pose=[0, 0, 0.0],
     equiped_color=[Color.CYAN.value, Color.MAGENTA.value]
   )
-  robots = [robot_1, robot_2]
+  robots = [robot_1, robot_2, robot_3, robot_4, robot_5]
 
 
   density_functions = [
     DensityFunction(
-      type='gaussian',
       color=Color.CYAN.value,
       center=[5, 0],
       variance=[1, 1]
     ),
     DensityFunction(
-      type='gaussian',
       color=Color.MAGENTA.value,
       center=[-5, 0],
       variance=[1, 1]
     ),
+    # bugs in painting the line shape
+    # DensityFunction(
+    #   color=Color.CYAN.value,
+    #   shape = 'line',
+    #   k=1,
+    #   a=1,
+    #   b=1,
+    #   c=1
+    # )
+    # DensityFunction(
+    #   color=Color.CYAN.value,
+    #   shape = 'ellipse',
+    #   k=2,
+    #   a=1,
+    #   b=1,
+    #   r=1,
+    #   center=[5, 0]
+    # ),
   ]
 
   env = np.array([
@@ -210,23 +250,23 @@ if __name__ == "__main__":
   sim.plot()
 
   for i in range(1000):
-    if i % 100 == 0:
-      idx = i // 100
-      color_pipe.receive_emotions([emotions[idx]])
-      colors = color_pipe.predict_colors()
+    # if i % 100 == 0:
+    #   idx = i // 100
+    #   color_pipe.receive_emotions([emotions[idx]])
+    #   colors = color_pipe.predict_colors()
 
-      location_pipe.receive_emotions([emotions[idx]])
-      locations = location_pipe.predict_locations()
+    #   location_pipe.receive_emotions([emotions[idx]])
+    #   locations = location_pipe.predict_locations()
 
-      density_functions = [
-        DensityFunction(
-          type='gaussian',
-          color=color_pipe.get_colors()[j].value,
-          center=location_pipe.get_locations()[j],
-          variance=[3, 3]
-        ) for j in range(len(colors))
-      ]
-      sim.plot_density_functions(density_functions)
+    #   density_functions = [
+    #     DensityFunction(
+    #       type='gaussian',
+    #       color=color_pipe.get_colors()[j].value,
+    #       center=location_pipe.get_locations()[j],
+    #       variance=[3, 3]
+    #     ) for j in range(len(colors))
+    #   ]
+      # sim.plot_density_functions(density_functions)
 
     vor_robots, vor_prime = swarm.color_coverage_control(density_functions)
 
@@ -238,7 +278,7 @@ if __name__ == "__main__":
       if vor_robot is None:
         continue
       
-      vw = robot.coverage_control(vor_robot, L=0.5, delta=10)
+      vw = robot.coverage_control(vor_robot, L=1, delta=10)
       color = robot.mix_color(vor_robot,
         swarm.cyan_density_functions,
         swarm.magenta_density_functions,
@@ -256,7 +296,7 @@ if __name__ == "__main__":
       centroid, cell, area = val
       sim.plot_voronoi(centroid, cell, refresh=False, centroid_color=color, boundary_color=color)
 
-
+    sim.plot_density_functions(density_functions)
     sim.update_plot()
     time.sleep(0.01)
 

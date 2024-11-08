@@ -128,6 +128,89 @@ class ColorPipeline:
     return self.colors
 
 
+class LPipeline:
+  def __init__(self):
+    self.emotions = None
+    self.colors = None
+    self.locations = None
+
+    self.color_pipeline = ColorPipeline()
+    self.location_pipeline = LocationPipeline()
+
+  def receive_emotions(self, emotions):
+    self.emotions = emotions
+    self.color_pipeline.receive_emotions(emotions)
+    self.location_pipeline.receive_emotions(emotions)
+
+  def predict_colors(self):
+    return self.color_pipeline.predict_colors()
+
+  def predict_locations(self):
+    return self.location_pipeline.predict_locations()
+
+  def get_colors(self):
+    return self.color_pipeline.get_colors()
+
+  def get_locations(self):
+    return self.location_pipeline.get_locations()
+  
+
+class FormationPipeline:
+  def __init__(self):
+    self.emotions = None
+    self.colors = None
+    self.locations = None
+
+    self.color_pipeline = ColorPipeline()
+    self.location_pipeline = LocationPipeline()
+
+  def receive_emotions(self, emotions):
+    self.emotions = emotions
+    self.color_pipeline.receive_emotions(emotions)
+    self.location_pipeline.receive_emotions(emotions)
+
+  def predict_colors(self):
+    return self.color_pipeline.predict_colors()
+
+  def predict_locations(self):
+    return self.location_pipeline.predict_locations()
+
+  def get_colors(self):
+    return self.color_pipeline.get_colors()
+
+  def get_locations(self):
+    return self.location_pipeline.get_locations()
+  
+
+class ShapePipeline:
+  def __init__(self):
+    self.emotions = None
+    self.colors = None
+    self.locations = None
+
+    self.color_pipeline = ColorPipeline()
+    self.location_pipeline = LocationPipeline()
+
+  def receive_emotions(self, emotions):
+    self.emotions = emotions
+    self.color_pipeline.receive_emotions(emotions)
+    self.location_pipeline.receive_emotions(emotions)
+
+  def predict_colors(self):
+    return self.color_pipeline.predict_colors()
+
+  def predict_locations(self):
+    return self.location_pipeline.predict_locations()
+
+  def get_colors(self):
+    return self.color_pipeline.get_colors()
+
+  def get_locations(self):
+    return self.location_pipeline.get_locations()
+  
+
+
+
 if __name__ == "__main__":
   pipeline = ColorPipeline()
   emotions = [Emotion.ACCEPTANCE, Emotion.ANGER, Emotion.ANTICIPATION, Emotion.ADMIRATION]

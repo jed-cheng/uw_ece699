@@ -3,24 +3,64 @@ import numpy as np
 
 
 class DensityFunction:
-  def __init__(self, type, color, center=None, variance=None, func=None):
+  def __init__(self,  color, center=None, variance=None, shape=None, func=None,type='gaussian', **kwargs ):
     self.type = type   # 'uniform' or 'gaussian'
     self.color = color # hex cmy color value
     self.center = center
     self.variance = variance
+    self.shape = shape
 
-    if self.center and self.variance:
-      # gaussian density function mean at center and variance variance
-      self.func =  lambda x, y: np.exp(
-        -0.5*((x - self.center[0])**2/(self.variance[0]**2) + (y - self.center[1])**2/(self.variance[1]**2))
-      ) if type == 'gaussian' else 1
-    elif func:
+    if func:
       self.func = func
+      return
+
+    if shape is None:
+      if self.center and self.variance:
+        # gaussian density function mean at center and variance variance
+        self.func =  lambda x, y: np.exp(
+          -0.5*((x - self.center[0])**2/(self.variance[0]**2) + (y - self.center[1])**2/(self.variance[1]**2))
+        ) 
+
+    elif shape == 'ellipse':
+        if kwargs.get('k') and kwargs.get('a') and kwargs.get('b') and kwargs.get('r') and self.center:
+          k = kwargs['k']
+          a = kwargs['a']
+          b = kwargs['b']
+          r = kwargs['r']
+          self.func =  lambda x, y: np.exp(
+            -k * (a*(x - self.center[0])**2 + b*(y - self.center[1])**2 - r**2)
+          )
+
+    elif shape == 'line':
+      if kwargs.get('k') and kwargs.get('a') and kwargs.get('b') and kwargs.get('c'):
+        k = kwargs['k']
+        a = kwargs['a']
+        b = kwargs['b']
+        c = kwargs['c']
+        self.func =  lambda x, y: np.exp(-k * (a*x + b*y + c)**2)
+
+    elif shape == 'disk':
+      if kwargs.get('k') and kwargs.get('a') and kwargs.get('b') and kwargs.get('r') and kwargs.get('l') and  self.center:
+        k = kwargs['k']
+        a = kwargs['a']
+        b = kwargs['b']
+        r = kwargs['r']
+        l = kwargs['l']
+
+        self.func =  lambda x, y: np.exp(
+          -k * (self.SR(a*(x - self.center[0]) + b*(y - self.center[1]) - r)**2, l)
+        )
+
+
     else:
       raise ValueError('Invalid Density')
 
   def phi(self, x, y):
     return self.func(x, y)
+  
+  def SR(self, x, l):
+
+    return x*(np.arctan(l*x)/np.pi + 0.5)
 
 
 class Color(Enum):
