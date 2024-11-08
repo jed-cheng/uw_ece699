@@ -1,15 +1,46 @@
-from utils import Color, Emotion
+from utils import Color, Emotion, Chord
+import numpy as np
 
 # chord to emotion
 class EmotionPipeline:
   def __init__(self):
     self.emotions = None
+
+    self.symbol_to_chord = {
+      'C': Chord.MAJOR,
+      'D': Chord.MAJOR,
+      'E': Chord.MAJOR,
+      'F': Chord.MAJOR,
+      'G': Chord.MAJOR,
+      'A': Chord.MAJOR,
+      'B': Chord.MAJOR,
+      'C#': Chord.MAJOR,
+      'D#': Chord.MAJOR,
+      'F#': Chord.MAJOR,
+      'G#': Chord.MAJOR,
+      'A#': Chord.MAJOR,
+      'Cm': Chord.MINOR,
+      'Dm': Chord.MINOR,
+      'Em': Chord.MINOR,
+      'Fm': Chord.MINOR,
+      'Gm': Chord.MINOR,
+      'Am': Chord.MINOR,
+      'Bm': Chord.MINOR,
+      'Ab': Chord.MAJOR,
+      'Bb': Chord.MAJOR,
+
+    }
+    self.chord_to_emotion = {
+      Chord.MAJOR: (Emotion.SERENITY, Emotion.ACCEPTANCE, Emotion.TRUST),
+      Chord.MINOR: (Emotion.GRIEF, Emotion.SADNESS, Emotion.ANGER, Emotion.PENSIVENESS)
+    }
   
   def receive_chords(self, chords):
     self.chords = chords
 
   def predict_emotions(self):
-    emotions = [Emotion.ANGER for chord in self.chords]
+    # flatten the chord to emotion mapping
+    emotions = [emotion for chord in self.chords for emotion in self.chord_to_emotion[self.symbol_to_chord[chord]]]
     self.emotions = emotions
     return emotions
   

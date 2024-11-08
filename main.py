@@ -1,5 +1,5 @@
 from multiprocessing import Pipe, Queue, Process
-from pipeline import ColorPipeline, LocationPipeline
+from pipeline import ColorPipeline, EmotionPipeline, LocationPipeline
 from simulator import Simulator
 from robot import Robot
 from swarm import Swarm
@@ -105,6 +105,7 @@ def proc_simulator(conn):
 
 
 def proc_pipeline(input_conn, output_conn):
+  emotion_pipeline = EmotionPipeline()
   color_pipeline = ColorPipeline()
   location_pipeline = LocationPipeline()
 
@@ -116,12 +117,14 @@ def proc_pipeline(input_conn, output_conn):
       output_conn.close()
       break
     elif message:
-      pass
       print("pipeline receive:", message)
-      color_pipeline.receive_emotions(message)
+      emotion_pipeline.receive_chords(message)
+      emotions = emotion_pipeline.predict_emotions()
+
+      color_pipeline.receive_emotions(emotions)
       color = color_pipeline.predict_colors()
 
-      location_pipeline.receive_emotions(message)
+      location_pipeline.receive_emotions(emotions)
       location = location_pipeline.predict_locations()
 
       # zip color and location
@@ -140,7 +143,7 @@ if __name__ == '__main__':
     pipe_p.start()
 
 
-    messages = list(Emotion)
+    messages = ['C', 'Cm', 'D', 'Dm', 'E', 'Em', 'F', 'Fm', 'G', 'Gm', 'A', 'Am', 'B', 'Bm']
     while len(messages) > 0:
       message = messages.pop(0)
       print('main send:', message)
@@ -149,6 +152,6 @@ if __name__ == '__main__':
 
     sys_send.send('exit')
 
-    sim_p.join()
+    # sim_p.join()
     pipe_p.join()
     print('done')
