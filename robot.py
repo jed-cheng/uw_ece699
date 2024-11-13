@@ -122,9 +122,10 @@ class Robot:
     color = 1 - color # rgb to cmy
     self.set_trail_color(color)
     return color
-    
-
-
+  
+  def set_trail_width(self, width):
+    self.trail_width = width
+    return width
       
       
   

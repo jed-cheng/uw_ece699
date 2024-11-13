@@ -62,8 +62,12 @@ def proc_simulator(conn):
           break
       elif message is not None:
         print('simulator receive:', message)
-        # for color, location in message:
-        #   print(color.value, location)
+        # message will be a dict
+        # message = {
+          # trail_width: 1,
+            # L : 1,
+        # }
+
         density_functions = [
           DensityFunction(
             type='gaussian',
@@ -86,12 +90,16 @@ def proc_simulator(conn):
       if vor_robot is None:
         continue
       
-      vw = robot.coverage_control(vor_robot, L=1, delta=10)
+      # vw = robot.coverage_control(vor_robot, L=1, delta=10)
+      vw = robot.coverage_control(vor_robot, L=message['L'], delta=10)
+      
       color = robot.mix_color(vor_robot,
         swarm.cyan_density_functions,
         swarm.magenta_density_functions,
         swarm.yellow_density_functions
-      ) 
+      )
+
+      trail_width = robot.set_trail_width(message['trail_width']) 
 
     sim.plot_swarm(swarm)
     # sim.clear_voronoi()
@@ -142,6 +150,10 @@ if __name__ == '__main__':
     sim_p.start()
     pipe_p.start()
 
+
+  # listen to user input
+  # listen to music
+  # send to pipeline
 
     messages = ['C', 'Cm', 'D', 'Dm', 'E', 'Em', 'F', 'Fm', 'G', 'Gm', 'A', 'Am', 'B', 'Bm']
     while len(messages) > 0:
