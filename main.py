@@ -53,6 +53,8 @@ def proc_simulator(conn):
   sim.plot_swarm(swarm)
   sim.plot()
 
+  prev_cursor_pos = None
+
   while True:
     readable, _, _ = select.select([conn], [], [], 0.1)  # 0.1 is the timeout in seconds
     if conn in readable:
@@ -67,14 +69,15 @@ def proc_simulator(conn):
           DensityFunction(
             type='gaussian',
             color=color.value,
-            center=location,
+            center= sim.cursor_pos if sim.cursor_pos is not None else location,
             variance=[3, 3]
           ) for color, location in message
         ]
         sim.plot_density_functions(density_functions)
-  
-    
 
+
+    
+    prev_cursor_pos = sim.cursor_pos
     vor_robots, vor_prime = swarm.color_coverage_control(density_functions)
 
 

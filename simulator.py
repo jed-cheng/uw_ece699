@@ -41,8 +41,8 @@ class Simulator:
     self.fig.canvas.mpl_connect('button_release_event', self.on_mouse_release)
     self.fig.canvas.mpl_connect('button_press_event', self.on_sim_click)
 
-    self.fig.canvas.draw_idle()
-
+    self.cursor_pos = None
+    
     self.p_env = None
     self.p_density = []
     self.p_robots = None
@@ -54,8 +54,8 @@ class Simulator:
 
   def on_sim_click(self, event):
     if event.inaxes == self.ax_sim:
-      print('Cursor Position:', event.xdata, event.ydata)
-  
+      self.cursor_pos = [event.xdata, event.ydata]
+
   def on_mouse_release(self, event):
     if event.inaxes == self.l_slider.ax:
       for robot in self.swarm.robots:
