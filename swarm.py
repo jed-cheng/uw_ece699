@@ -1,14 +1,9 @@
-import time
 import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib import patches
 from robot import Robot
 from scipy.spatial import Voronoi
 from voronoi import voronoi_centroids
 from matplotlib.colors import hex2color, to_hex
-import random
 from utils import Color, DensityFunction
-import copy
 
 # rgb hex to cmy
 def hex_to_cmy(color):
@@ -29,7 +24,6 @@ class Swarm:
     self.cyan_density_functions = None
     self.magenta_density_functions = None
     self.yellow_density_functions = None
-    # self.get_prime_density_functions(density_functions)
 
 
 

@@ -1,7 +1,5 @@
 import math, time
 import numpy as np
-from matplotlib import patches
-from matplotlib.lines import Line2D
 
 from utils import Color
 
