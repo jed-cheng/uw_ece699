@@ -74,7 +74,27 @@ def proc_simulator(conn):
         sim.plot_density_functions(density_functions)
   
     
-        swarm.run(density_functions)
+
+    vor_robots, vor_prime = swarm.color_coverage_control(density_functions)
+
+
+    for j in range(len(robots)):
+      robot = robots[j]
+      vor_robot = vor_robots[j]
+
+      if vor_robot is None:
+        continue
+      
+      # vw = robot.coverage_control(vor_robot, L=1, delta=10)
+      vw = robot.coverage_control(vor_robot, delta=10)
+      
+      color = robot.mix_color(vor_robot,
+        swarm.cyan_density_functions,
+        swarm.magenta_density_functions,
+        swarm.yellow_density_functions
+      )
+
+
 
 
 
