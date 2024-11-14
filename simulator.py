@@ -16,7 +16,7 @@ class Simulator:
     self.swarm = swarm
     self.environment = environment
 
-    self.fig, self.axes = plt.subplots()
+    self.fig, self.ax_sim = plt.subplots()
     ax_l = self.fig.add_axes([0.25, 0.1, 0.65, 0.03])
     ax_trail_width = self.fig.add_axes([0.25, 0.15, 0.65, 0.03])
     self.l_slider = Slider(
@@ -25,20 +25,23 @@ class Simulator:
       valmin=0.1,
       valmax=1,
       valinit=1,
+      valstep=0.1
     )
 
     self.trail_width_slider = Slider(
       ax=ax_trail_width,
       label='Trail Width',
-      valmin=0.1,
-      valmax=1,
+      valmin=1,
+      valmax=10,
       valinit=1,
+      valstep=1
     )
     
     self.fig.subplots_adjust(bottom=0.25)
     self.fig.canvas.mpl_connect('button_release_event', self.on_mouse_release)
-    self.fig.canvas.mpl_connect('button_press_event', self.on_plot_click)
+    self.fig.canvas.mpl_connect('button_press_event', self.on_sim_click)
 
+    self.fig.canvas.draw_idle()
 
     self.p_env = None
     self.p_density = []
@@ -49,14 +52,18 @@ class Simulator:
 
 
 
-  def on_plot_click(self, event):
-    if event.inaxes == self.axes:
+  def on_sim_click(self, event):
+    if event.inaxes == self.ax_sim:
       print('Cursor Position:', event.xdata, event.ydata)
   
   def on_mouse_release(self, event):
-    if event.inaxes == self.l_slider.ax or event.inaxes == self.trail_width_slider.ax:
+    if event.inaxes == self.l_slider.ax:
       print('L:', self.l_slider.val)
+    if event.inaxes == self.trail_width_slider.ax:
+      for robot in self.swarm.robots:
+        robot.set_trail_width(self.trail_width_slider.val)
       print('Trail Width:', self.trail_width_slider.val)
+
 
   def plot_environment(self, environment):
     if self.p_env:
@@ -66,7 +73,7 @@ class Simulator:
       self.environment = environment
 
     self.p_env = patches.Polygon(self.environment, fill=False)
-    self.axes.add_patch(self.p_env)
+    self.ax_sim.add_patch(self.p_env)
 
 
 
@@ -102,7 +109,7 @@ class Simulator:
         rgba_image[..., :3] = base_color[:3]
         alpha_exponent = 0.3
         rgba_image[...,  3] = Z_norm**alpha_exponent         
-        p = self.axes.imshow(
+        p = self.ax_sim.imshow(
           rgba_image, 
           extent=[xmin, xmax, ymin, ymax],
           origin='lower',
@@ -122,7 +129,7 @@ class Simulator:
         rgba_image[..., :3] = base_color[:3]
         alpha_exponent = 0.3
         rgba_image[...,  3] = Z_norm**alpha_exponent         
-        p = self.axes.imshow(
+        p = self.ax_sim.imshow(
           rgba_image, 
           extent=[-range, range, -range, range],
           origin='lower',
@@ -155,13 +162,13 @@ class Simulator:
 
       p_robot = patches.Polygon(t+v @ R.T, color=robot.robot_color, fill=True)
       self.p_robots.append(p_robot)
-      self.axes.add_patch(p_robot)
+      self.ax_sim.add_patch(p_robot)
 
       if len(robot.trail) > 1:
         segment = robot.trail[-2:]
         p_segment = Line2D(segment[:,0], segment[:,1], color=robot.trail_color, linewidth=robot.trail_width)
         self.p_trails[i].append(p_segment)
-        self.axes.add_line(p_segment)
+        self.ax_sim.add_line(p_segment)
 
   def plot_voronoi(self, vor_centroid, vor_cell, 
     refresh=True,
@@ -176,12 +183,12 @@ class Simulator:
     for centroid in vor_centroid:
       p = patches.Circle(centroid, radius=centroid_size, fill=True, color=centroid_color)
       self.p_vor_centroid.append(p)
-      self.axes.add_patch(p)
+      self.ax_sim.add_patch(p)
 
     for cell in vor_cell:
       p = patches.Polygon(cell, fill=False, closed=True, color=boundary_color)
       self.p_vor_cell.append(p)
-      self.axes.add_patch(p)
+      self.ax_sim.add_patch(p)
 
   def clear_voronoi(self):
     for p_vor_centroid in self.p_vor_centroid:
@@ -194,8 +201,8 @@ class Simulator:
   def plot(self):
     # self.axes.autoscale()
     # self.axes.set_aspect('equal')
-    self.axes.set_xlim(-10, 10)  # Adjust the limits as needed
-    self.axes.set_ylim(-10, 10)  # Adjust the limits as needed
+    self.ax_sim.set_xlim(-10, 10)  # Adjust the limits as needed
+    self.ax_sim.set_ylim(-10, 10)  # Adjust the limits as needed
     plt.ion()
     plt.show()
 
@@ -234,11 +241,6 @@ if __name__ == "__main__":
     DensityFunction(
       color=Color.CYAN.value,
       center=[5, 0],
-      variance=[1, 1]
-    ),
-    DensityFunction(
-      color=Color.MAGENTA.value,
-      center=[-5, 0],
       variance=[1, 1]
     ),
     # bugs in painting the line shape
