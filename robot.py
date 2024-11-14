@@ -70,7 +70,7 @@ class Robot:
     return vw
 
 
-  def coverage_control(self, vor_robot ,L = 1, delta=None):
+  def coverage_control(self, vor_robot , delta=None):
 
     u = np.zeros(2)
     for color, val in vor_robot.items():
@@ -85,8 +85,8 @@ class Robot:
       [-math.sin(self.robot_pose[2]), math.cos(self.robot_pose[2])]
     ])
     #
-    L = L if L is not None else 1
-    vw = np.array([[1,0], [0,1/L]]) @ R @ u
+    
+    vw = np.array([[1,0], [0,1/self.L]]) @ R @ u
 
     self.set_mobile_base_speed(vw[0], vw[1], delta)
     return vw
@@ -126,6 +126,10 @@ class Robot:
   def set_trail_width(self, width):
     self.trail_width = width
     return width
+  
+  def set_L(self, L):
+    self.L = L
+    return L
       
       
   

@@ -22,10 +22,10 @@ class Simulator:
     self.l_slider = Slider(
       ax=ax_l,
       label='L',
-      valmin=0.1,
-      valmax=1,
+      valmin=1,
+      valmax=10,
       valinit=1,
-      valstep=0.1
+      valstep=1
     )
 
     self.trail_width_slider = Slider(
@@ -58,11 +58,11 @@ class Simulator:
   
   def on_mouse_release(self, event):
     if event.inaxes == self.l_slider.ax:
-      print('L:', self.l_slider.val)
+      for robot in self.swarm.robots:
+        robot.set_L(self.l_slider.val)
     if event.inaxes == self.trail_width_slider.ax:
       for robot in self.swarm.robots:
         robot.set_trail_width(self.trail_width_slider.val)
-      print('Trail Width:', self.trail_width_slider.val)
 
 
   def plot_environment(self, environment):
@@ -314,7 +314,7 @@ if __name__ == "__main__":
       if vor_robot is None:
         continue
       
-      vw = robot.coverage_control(vor_robot, L=1, delta=1)
+      vw = robot.coverage_control(vor_robot, delta=1)
       color = robot.mix_color(vor_robot,
         swarm.cyan_density_functions,
         swarm.magenta_density_functions,
