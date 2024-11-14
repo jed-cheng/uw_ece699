@@ -8,7 +8,7 @@ from swarm import Swarm
 from robot import Robot
 import time
 from pipeline import ColorPipeline, LocationPipeline
-
+from matplotlib.widgets import  Slider
 from utils import Color, DensityFunction, Emotion
 
 class Simulator:
@@ -16,7 +16,30 @@ class Simulator:
     self.swarm = swarm
     self.environment = environment
 
-    self.figure, self.axes = plt.subplots()
+    self.fig, self.axes = plt.subplots()
+    ax_l = self.fig.add_axes([0.25, 0.1, 0.65, 0.03])
+    ax_trail_width = self.fig.add_axes([0.25, 0.15, 0.65, 0.03])
+    self.l_slider = Slider(
+      ax=ax_l,
+      label='L',
+      valmin=0.1,
+      valmax=1,
+      valinit=1,
+    )
+
+    self.trail_width_slider = Slider(
+      ax=ax_trail_width,
+      label='Trail Width',
+      valmin=0.1,
+      valmax=1,
+      valinit=1,
+    )
+    
+    self.fig.subplots_adjust(bottom=0.25)
+    self.fig.canvas.mpl_connect('button_release_event', self.on_mouse_release)
+    self.fig.canvas.mpl_connect('button_press_event', self.on_plot_click)
+
+
     self.p_env = None
     self.p_density = []
     self.p_robots = None
@@ -24,6 +47,16 @@ class Simulator:
     self.p_vor_centroid = []
     self.p_vor_cell = []
 
+
+
+  def on_plot_click(self, event):
+    if event.inaxes == self.axes:
+      print('Cursor Position:', event.xdata, event.ydata)
+  
+  def on_mouse_release(self, event):
+    if event.inaxes == self.l_slider.ax or event.inaxes == self.trail_width_slider.ax:
+      print('L:', self.l_slider.val)
+      print('Trail Width:', self.trail_width_slider.val)
 
   def plot_environment(self, environment):
     if self.p_env:
@@ -167,8 +200,8 @@ class Simulator:
     plt.show()
 
   def update_plot(self):
-    self.figure.canvas.draw_idle()
-    self.figure.canvas.flush_events()
+    self.fig.canvas.draw_idle()
+    self.fig.canvas.flush_events()
 
 
 if __name__ == "__main__":
@@ -279,14 +312,14 @@ if __name__ == "__main__":
       if vor_robot is None:
         continue
       
-      vw = robot.coverage_control(vor_robot, L=1, delta=10)
+      vw = robot.coverage_control(vor_robot, L=1, delta=1)
       color = robot.mix_color(vor_robot,
         swarm.cyan_density_functions,
         swarm.magenta_density_functions,
         swarm.yellow_density_functions
        ) 
 
-      print(j,vw, color)
+      # print(j,vw, color)
 
 
     sim.plot_swarm(swarm)

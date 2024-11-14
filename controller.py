@@ -9,7 +9,8 @@ class Controller:
     fig = plt.figure()
     self.fig = fig
 
-    gs = GridSpec(1, 2, width_ratios=[1, 1], wspace=0.3)
+    gs = GridSpec(1, 3, width_ratios=[1, 1, 5], wspace=0.3)
+
 
     axL = fig.add_subplot(gs[0, 0])
     self.L_slider  = Slider(
@@ -31,16 +32,26 @@ class Controller:
       orientation="vertical"
     )
 
-    self.L_slider.on_changed(self.update_L)
-    self.trail_width_slider.on_changed(self.update_trail_width)
+    self.ax_plot = fig.add_subplot(gs[0, 2])
+    self.ax_plot.set_title('Click to get cursor position')
+    self.ax_plot.set_xlim(0, 10)
+    self.ax_plot.set_ylim(0, 10)
+
+
+    self.fig.canvas.mpl_connect('button_release_event', self.on_mouse_release)
+    self.fig.canvas.mpl_connect('button', self.on_plot_click)
 
     plt.show()
 
-  def update_L(self,val):
-    self.fig.canvas.draw_idle()
 
-  def update_trail_width(self, val):
-    self.fig.canvas.draw_idle()
+  def on_plot_click(self, event):
+    if event.inaxes == self.ax_plot:
+      print('Cursor Position:', event.xdata, event.ydata)
+
+  def on_mouse_release(self, event):
+    if event.inaxes == self.L_slider.ax or event.inaxes == self.trail_width_slider.ax:
+      print('L:', self.L_slider.val)
+      print('Trail Width:', self.trail_width_slider.val)
 
 
 if __name__ == '__main__':

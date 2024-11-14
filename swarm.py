@@ -187,7 +187,25 @@ class Swarm:
     return vor_centroid, vor_cell, vor_area 
 
 
+  def run(self, density_functions, L=1):
+    vor_robots, vor_prime = self.color_coverage_control(density_functions)
 
+    # run until all robots are in their voronoi cell
+    while True:
+      for j in range(len(robots)):
+        robot = robots[j]
+        vor_robot = vor_robots[j]
+
+        if vor_robot is None:
+          continue
+        
+        vw = robot.coverage_control(vor_robot, L, delta=10)
+        
+        color = robot.mix_color(vor_robot,
+          swarm.cyan_density_functions,
+          swarm.magenta_density_functions,
+          swarm.yellow_density_functions
+        )
 
 
 

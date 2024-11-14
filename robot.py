@@ -70,7 +70,7 @@ class Robot:
     return vw
 
 
-  def coverage_control(self, vor_robot ,L = None, delta=None):
+  def coverage_control(self, vor_robot ,L = 1, delta=None):
 
     u = np.zeros(2)
     for color, val in vor_robot.items():

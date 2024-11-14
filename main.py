@@ -62,11 +62,6 @@ def proc_simulator(conn):
           break
       elif message is not None:
         print('simulator receive:', message)
-        # message will be a dict
-        # message = {
-          # trail_width: 1,
-            # L : 1,
-        # }
 
         density_functions = [
           DensityFunction(
@@ -79,36 +74,11 @@ def proc_simulator(conn):
         sim.plot_density_functions(density_functions)
   
     
+        swarm.run(density_functions)
 
-    vor_robots, vor_prime = swarm.color_coverage_control(density_functions)
 
-
-    for j in range(len(robots)):
-      robot = robots[j]
-      vor_robot = vor_robots[j]
-
-      if vor_robot is None:
-        continue
-      
-      # vw = robot.coverage_control(vor_robot, L=1, delta=10)
-      vw = robot.coverage_control(vor_robot, L=message['L'], delta=10)
-      
-      color = robot.mix_color(vor_robot,
-        swarm.cyan_density_functions,
-        swarm.magenta_density_functions,
-        swarm.yellow_density_functions
-      )
-
-      trail_width = robot.set_trail_width(message['trail_width']) 
 
     sim.plot_swarm(swarm)
-    # sim.clear_voronoi()
-    # for color, val in vor_prime.items():
-    #   if val is None:
-    #     continue
-    #   centroid, cell, area = val
-    #   sim.plot_voronoi(centroid, cell, refresh=False, centroid_color=color, boundary_color=color)
-
     sim.update_plot()
 
 
