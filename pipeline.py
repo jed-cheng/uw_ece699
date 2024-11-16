@@ -7,40 +7,45 @@ class EmotionPipeline:
     self.emotions = None
 
     self.symbol_to_chord = {
-      'C': Chord.MAJOR,
-      'D': Chord.MAJOR,
-      'E': Chord.MAJOR,
-      'F': Chord.MAJOR,
-      'G': Chord.MAJOR,
       'A': Chord.MAJOR,
-      'B': Chord.MAJOR,
-      'C#': Chord.MAJOR,
-      'D#': Chord.MAJOR,
-      'F#': Chord.MAJOR,
-      'G#': Chord.MAJOR,
-      'A#': Chord.MAJOR,
-      'Cm': Chord.MINOR,
-      'Dm': Chord.MINOR,
-      'Em': Chord.MINOR,
-      'Fm': Chord.MINOR,
-      'Gm': Chord.MINOR,
       'Am': Chord.MINOR,
+      'A#' : Chord.MINOR,
+      'A#m': Chord.MINOR,
+      'Ab': Chord.MINOR,
+      'B': Chord.MINOR,
       'Bm': Chord.MINOR,
-      'Ab': Chord.MAJOR,
-      'Bb': Chord.MAJOR,
-
+      'Bb': Chord.MINOR,
+      'C': Chord.MAJOR,
+      'Cm': Chord.MINOR,
+      'C#': Chord.MINOR,
+      'C#m': Chord.MINOR,
+      'D': Chord.MAJOR,
+      'Dm': Chord.MINOR,
+      'D#': Chord.MINOR,
+      'D#m': Chord.MINOR,
+      'E': Chord.MAJOR,
+      'Em': Chord.MINOR,
+      'Eb': Chord.MINOR,
+      'F': Chord.MAJOR,
+      'Fm': Chord.MINOR,
+      'F#': Chord.MINOR,
+      'F#m': Chord.MINOR,
+      'G': Chord.MAJOR,
+      'Gm': Chord.MINOR,
+      'G#' : Chord.MINOR,
+      'G#m': Chord.MINOR,
     }
     self.chord_to_emotion = {
       Chord.MAJOR: (Emotion.SERENITY, Emotion.ACCEPTANCE, Emotion.TRUST),
       Chord.MINOR: (Emotion.GRIEF, Emotion.SADNESS, Emotion.ANGER, Emotion.PENSIVENESS)
     }
   
-  def receive_chords(self, chords):
-    self.chords = chords
+  def receive_chord(self, chord):
+    self.chords = chord
 
-  def predict_emotions(self):
+  def predict_emotions(self, chord):
     # flatten the chord to emotion mapping
-    emotions = [emotion for chord in self.chords for emotion in self.chord_to_emotion[self.symbol_to_chord[chord]]]
+    emotions = self.chord_to_emotion[self.symbol_to_chord[chord]]
     self.emotions = emotions
     return emotions
   

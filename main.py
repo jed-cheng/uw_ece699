@@ -1,4 +1,5 @@
-from multiprocessing import Pipe, Queue, Process
+from multiprocessing import Queue, Process
+from music import get_audio_chords,  get_audio_tempo
 from pipeline import ColorPipeline, EmotionPipeline, LocationPipeline
 from simulator import Simulator
 from robot import Robot
@@ -11,7 +12,7 @@ from utils import Color, DensityFunction, Emotion
 import time
 
 
-def proc_simulator(conn):
+def proc_simulator(queue):
   robot_1 = Robot( 
     robot_pose=[0, -5, 0.0],
     equiped_color=[Color.CYAN.value, Color.MAGENTA.value],
@@ -56,11 +57,11 @@ def proc_simulator(conn):
   prev_cursor_pos = None
 
   while True:
-    readable, _, _ = select.select([conn], [], [], 0.1)  # 0.1 is the timeout in seconds
-    if conn in readable:
-      message = conn.recv()
+    readable, _, _ = select.select([queue], [], [], 0.1)  # 0.1 is the timeout in seconds
+    if queue in readable:
+      message = queue.recv()
       if message == 'exit':
-          conn.close()
+          queue.close()
           break
       elif message is not None:
         print('simulator receive:', message)
@@ -105,42 +106,38 @@ def proc_simulator(conn):
     sim.update_plot()
 
 
-def proc_pipeline(input_conn, output_conn):
+def proc_pipeline(file_path, queue):
+  chords = get_audio_chords(file_path)
+  tempos = get_audio_tempo(file_path)
+
   emotion_pipeline = EmotionPipeline()
   color_pipeline = ColorPipeline()
   location_pipeline = LocationPipeline()
 
-  while True:
-    message = input_conn.recv()
-    if message == 'exit':
-      output_conn.send('exit')
-      input_conn.close()
-      output_conn.close()
-      break
-    elif message:
-      print("pipeline receive:", message)
-      emotion_pipeline.receive_chords(message)
-      emotions = emotion_pipeline.predict_emotions()
+  for i in range(min(len(chords), len(tempos))):
+    chord = chords[i]
+    print('chord', chords[i], 'tempo', tempos[i])
+    emotions = emotion_pipeline.predict_emotions(chord)
 
-      color_pipeline.receive_emotions(emotions)
-      color = color_pipeline.predict_colors()
+    color_pipeline.receive_emotions(emotions)
+    color = color_pipeline.predict_colors()
 
-      location_pipeline.receive_emotions(emotions)
-      location = location_pipeline.predict_locations()
+    location_pipeline.receive_emotions(emotions)
+    location = location_pipeline.predict_locations()
 
-      # zip color and location
-      output = list(zip(color, location))
-      print("pipeline send:", output)
-      output_conn.send(output)
+    # zip color and location
+    output = list(zip(color, location))
+    # print("pipeline send:", output)
+    # queue.send(output)
+    time.sleep(1)
 
 
 if __name__ == '__main__':
-    sim_input, pipe_output = Pipe()
-    pipe_input, sys_send = Pipe()
-
-    sim_p = Process(target=proc_simulator, args=(sim_input,))
-    pipe_p = Process(target=proc_pipeline, args=(pipe_input, pipe_output))
-    sim_p.start()
+    queue = Queue()
+    audio_file = 'c.mp3'
+    # sim_p = Process(target=proc_simulator, args=(queue,))
+    pipe_p = Process(target=proc_pipeline, args=(audio_file, queue))
+    # sim_p.start()
     pipe_p.start()
 
 
@@ -148,15 +145,7 @@ if __name__ == '__main__':
   # listen to music
   # send to pipeline
 
-    messages = ['C', 'Cm', 'D', 'Dm', 'E', 'Em', 'F', 'Fm', 'G', 'Gm', 'A', 'Am', 'B', 'Bm']
-    while len(messages) > 0:
-      message = messages.pop(0)
-      print('main send:', message)
-      sys_send.send([message])
-      time.sleep(5)
-
-    sys_send.send('exit')
-
     # sim_p.join()
     pipe_p.join()
+    queue.close()
     print('done')

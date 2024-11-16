@@ -78,6 +78,7 @@ if __name__ == '__main__':
   chords = get_audio_chords(audio_file)
   print(chords)
   print(len(chords))
+  print(True if 'm' in chords else False)
   
   duration = get_audio_duration(audio_file)
   print(duration)
