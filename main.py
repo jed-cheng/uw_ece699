@@ -116,14 +116,10 @@ def proc_pipeline(file_path, queue):
 
   for i in range(min(len(chords), len(tempos))):
     chord = chords[i]
-    print('chord', chords[i], 'tempo', tempos[i])
-    emotions = emotion_pipeline.predict_emotions(chord)
+    emotion = emotion_pipeline.predict_emotion(chord)
 
-    color_pipeline.receive_emotions(emotions)
-    color = color_pipeline.predict_colors()
-
-    location_pipeline.receive_emotions(emotions)
-    location = location_pipeline.predict_locations()
+    color = color_pipeline.predict_color(emotion)
+    location = location_pipeline.predict_location(chord)
 
     # zip color and location
     output = list(zip(color, location))
