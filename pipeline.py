@@ -71,11 +71,11 @@ class EmotionPipeline:
 
 
 
-class LocationPipeline:
+class CenterPipeline:
   def __init__(self):
     self.locations = None
     self.emotions = None
-    self.R = 1
+    self.R = 3
     # eight_divide_1 = 2.121320343559643
     # eight_divide_2 = eight_divide_1 * 2
     # eight_divide_3 = eight_divide_1 * 3
@@ -115,7 +115,7 @@ class LocationPipeline:
     #   Emotion.INTEREST: [-eight_divide_3, eight_divide_3],
     # }
 
-    self.chord_to_location = {
+    self.chord_to_center = {
     # Inner Circle (Major Chords)
     'C': pol2cart(0, self.R),
     'G': pol2cart(30, self.R),
@@ -162,13 +162,9 @@ class LocationPipeline:
   def receive_emotions(self, emotions):
     self.emotions = emotions
 
-  def predict_location(self, chord):
-    return self.chord_to_location[chord]
+  def predict_center(self, chord):
+    return self.chord_to_center[chord]
 
-
-
-  def get_locations(self):
-    return self.locations
 
 
 
@@ -232,7 +228,7 @@ class LPipeline:
     self.locations = None
 
     self.color_pipeline = ColorPipeline()
-    self.location_pipeline = LocationPipeline()
+    self.location_pipeline = CenterPipeline()
 
   def receive_emotions(self, emotions):
     self.emotions = emotions
@@ -243,7 +239,7 @@ class LPipeline:
     return self.color_pipeline.predict_color()
 
   def predict_locations(self):
-    return self.location_pipeline.predict_location()
+    return self.location_pipeline.predict_center()
 
   def get_colors(self):
     return self.color_pipeline.get_colors()
@@ -259,7 +255,7 @@ class FormationPipeline:
     self.locations = None
 
     self.color_pipeline = ColorPipeline()
-    self.location_pipeline = LocationPipeline()
+    self.location_pipeline = CenterPipeline()
 
   def receive_emotions(self, emotions):
     self.emotions = emotions
@@ -270,7 +266,7 @@ class FormationPipeline:
     return self.color_pipeline.predict_color()
 
   def predict_locations(self):
-    return self.location_pipeline.predict_location()
+    return self.location_pipeline.predict_center()
 
   def get_colors(self):
     return self.color_pipeline.get_colors()
@@ -286,7 +282,7 @@ class ShapePipeline:
     self.locations = None
 
     self.color_pipeline = ColorPipeline()
-    self.location_pipeline = LocationPipeline()
+    self.location_pipeline = CenterPipeline()
 
   def receive_emotions(self, emotions):
     self.emotions = emotions
@@ -297,7 +293,7 @@ class ShapePipeline:
     return self.color_pipeline.predict_color()
 
   def predict_locations(self):
-    return self.location_pipeline.predict_location()
+    return self.location_pipeline.predict_center()
 
   def get_colors(self):
     return self.color_pipeline.get_colors()
@@ -310,11 +306,11 @@ class ShapePipeline:
 
 if __name__ == "__main__":
   chords = ['C', 'Am', 'G', 'Em']
-  localtion_pipeline = LocationPipeline()
+  localtion_pipeline = CenterPipeline()
   emotion_pipline = EmotionPipeline()
   color_pipeline = ColorPipeline()
   for chord in chords:
-    location = localtion_pipeline.predict_location(chord)
+    location = localtion_pipeline.predict_center(chord)
     emotions = emotion_pipline.predict_emotion(chord)
     colors = color_pipeline.predict_colors(emotions)
     print(chord,location, colors)

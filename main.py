@@ -1,7 +1,7 @@
 from multiprocessing import Queue, Process
 from queue import Empty
 from music import get_audio_chords,  get_audio_tempo
-from pipeline import ColorPipeline, EmotionPipeline, LocationPipeline, cart2pol
+from pipeline import ColorPipeline, EmotionPipeline, CenterPipeline, cart2pol
 from simulator import Simulator
 from robot import Robot
 from swarm import Swarm
@@ -9,7 +9,7 @@ import math
 
 import numpy as np
 
-from utils import Color, DensityFunction, Emotion
+from utils import Color, DensityFunction
 import time
 
 
@@ -47,19 +47,20 @@ def proc_simulator(queue):
   ])
 
   swarm = Swarm(robots, env)
-  sim = Simulator(swarm, env)
+  sim = Simulator(swarm)
 
   colors = None
-  location = None
+  center = None
   tempo = None
+  chord = None
+  prev_chord = None
 
   phi = 0
-  rho = 1
+  rho = 2
 
-
-  sim.plot_environment(env)
-  sim.plot_swarm(swarm)
   sim.plot()
+  sim.plot_environment()
+  sim.plot_swarm()
 
 
   while True:
@@ -68,28 +69,40 @@ def proc_simulator(queue):
       if item is None:
         break
       else:
-        i_colors, i_location, i_tempo = item
-        colors = i_colors
-        location = i_location
+        i_chord, i_colors, i_center, i_tempo = item
+        if i_chord != chord:
+          center = i_center
+          colors = i_colors
+          print(i_chord)
+
         tempo = i_tempo
+        prev_chord = chord
+        chord = i_chord
 
     except Empty:
       pass
-    
-    if location is None or colors is None:
+
+    if center is None or colors is None:
       continue
 
-    coord = [location[0] + np.cos(math.radians(phi)) * rho, location[1] + np.sin(math.radians(phi)) * rho]
+    if sim.cursor_pos is not None and prev_chord == chord:
+      center = sim.get_cursor_pos()
+
+
+    step = 2 * np.pi / len(colors)
     density_functions = [
       DensityFunction(
         type='gaussian',
         color=color.value,
-        center= coord,
+        center= [
+          center[0] + np.cos(math.radians(phi)+i*step) * rho, 
+          center[1] + np.sin(math.radians(phi)+i*step) * rho
+          ],
         variance=[2, 2]
-      ) for color in colors
+      ) for i, color in enumerate(colors)
     ]
 
-    vor_robots, vor_prime = swarm.color_coverage_control(density_functions)
+    vor_robots, _ = swarm.color_coverage_control(density_functions)
 
     for j in range(len(robots)):
       robot = robots[j]
@@ -106,10 +119,10 @@ def proc_simulator(queue):
         swarm.yellow_density_functions
       )
 
-    phi = (phi + 5) % 360
+    phi = (phi + 1) % 360
 
     sim.plot_density_functions(density_functions)
-    sim.plot_swarm(swarm)
+    sim.plot_swarm()
     sim.update_plot()
 
 
@@ -129,19 +142,19 @@ def proc_pipeline(file_path, queue):
 
   emotion_pipeline = EmotionPipeline()
   color_pipeline = ColorPipeline()
-  location_pipeline = LocationPipeline()
+  center_pipeline = CenterPipeline()
 
   for i in range(min(len(chords), len(tempos))):
     chord = chords[i]
     tempo = tempos[i]
     emotions = emotion_pipeline.predict_emotion(chord)
     colors = color_pipeline.predict_colors(emotions)
-    location = location_pipeline.predict_location(chord)
+    center = center_pipeline.predict_center(chord)
 
 
 
     # zip color and location
-    output = (colors, location, tempo)
+    output = (chord, colors, center, tempo)
     queue.put(output)
     time.sleep(1)
 

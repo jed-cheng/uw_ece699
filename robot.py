@@ -2,6 +2,7 @@ import math, time
 import numpy as np
 
 from utils import Color
+from consts import TRAIL_WIDTH, L_DEFAULT, K_DEFAULT
 
 
 
@@ -12,10 +13,10 @@ class Robot:
     equiped_color,
     robot_size = 0.5,
     robot_color = 'black',
-    trail_width = 5,
+    trail_width = TRAIL_WIDTH,
+    K = K_DEFAULT,
+    L = L_DEFAULT,
     TIMEOUT_SET_MOBILE_BASE_SPEED = 0,
-    K = 1,
-    L = 1
   ):
 
     self.robot_pose = robot_pose
@@ -34,8 +35,7 @@ class Robot:
     self.K = K
     self.L = L
 
-    # initialize robot
-    # self.__init_plot()
+
     self.last_time_set_mobile_base_speed = int(round(time.time()*1000))
     self.last_time_get_poses = int(round(time.time()*1000))
 
@@ -123,13 +123,9 @@ class Robot:
   
   def set_trail_width(self, width):
     self.trail_width = width
-    return width
   
   def set_L(self, L):
     self.L = L
-    return L
-      
-      
   
   def set_trail_color(self, color):
     self.trail_color = color

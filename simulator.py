@@ -7,14 +7,14 @@ import math
 from swarm import Swarm
 from robot import Robot
 import time
-from pipeline import ColorPipeline, LocationPipeline
+from pipeline import ColorPipeline, CenterPipeline
 from matplotlib.widgets import  Slider
 from utils import Color, DensityFunction, Emotion
 
 class Simulator:
-  def __init__(self, swarm, environment):
+  def __init__(self, swarm):
     self.swarm = swarm
-    self.environment = environment
+    self.environment = self.swarm.environment
 
     self.fig, self.ax_sim = plt.subplots()
     ax_l = self.fig.add_axes([0.25, 0.1, 0.65, 0.03])
@@ -56,6 +56,11 @@ class Simulator:
     if event.inaxes == self.ax_sim:
       self.cursor_pos = [event.xdata, event.ydata]
 
+  def get_cursor_pos(self):
+    pos =  self.cursor_pos
+    self.cursor_pos = None
+    return pos
+
   def on_mouse_release(self, event):
     if event.inaxes == self.l_slider.ax:
       for robot in self.swarm.robots:
@@ -65,12 +70,10 @@ class Simulator:
         robot.set_trail_width(self.trail_width_slider.val)
 
 
-  def plot_environment(self, environment):
+  def plot_environment(self):
     if self.p_env:
       self.p_env.remove()
 
-    if environment is not None:
-      self.environment = environment
 
     self.p_env = patches.Polygon(self.environment, fill=False)
     self.ax_sim.add_patch(self.p_env)
@@ -138,14 +141,14 @@ class Simulator:
         self.p_density.append(p)
 
 
-  def plot_swarm(self, swarm):
+  def plot_swarm(self):
     if self.p_robots:
       for p in self.p_robots:
         p.remove()
 
 
     self.p_robots = []
-    for i, robot in enumerate(swarm.robots):
+    for i, robot in enumerate(self.swarm.robots):
       pose = robot.robot_pose
       size = robot.robot_size
       R = np.array([[0.0, 1.0], [-1.0, 0.0]]) @ np.array([
@@ -275,7 +278,7 @@ if __name__ == "__main__":
   sim = Simulator(swarm, env)
 
   color_pipe = ColorPipeline()
-  location_pipe = LocationPipeline()
+  location_pipe = CenterPipeline()
   
   # get all emotions of Emotion
   emotions = list(Emotion)
