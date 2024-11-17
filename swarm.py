@@ -195,7 +195,7 @@ class Swarm:
         
         vw = robot.coverage_control(vor_robot, L, delta=10)
         
-        color = robot.mix_color(vor_robot,
+        color = robot.coverage_control_color(vor_robot,
           swarm.cyan_density_functions,
           swarm.magenta_density_functions,
           swarm.yellow_density_functions

@@ -4,6 +4,7 @@ from matplotlib.lines import Line2D
 import numpy as np
 from matplotlib.colors import to_rgba
 import math
+from consts import L_DEFAULT, TRAIL_WIDTH
 from swarm import Swarm
 from robot import Robot
 import time
@@ -24,7 +25,7 @@ class Simulator:
       label='L',
       valmin=1,
       valmax=10,
-      valinit=1,
+      valinit=L_DEFAULT,
       valstep=1
     )
 
@@ -32,8 +33,8 @@ class Simulator:
       ax=ax_trail_width,
       label='Trail Width',
       valmin=1,
-      valmax=10,
-      valinit=1,
+      valmax=20,
+      valinit=TRAIL_WIDTH,
       valstep=1
     )
     
@@ -163,7 +164,7 @@ class Simulator:
         [size * math.sqrt(3)/2, -size/2]
       ])
 
-      p_robot = patches.Polygon(t+v @ R.T, color=robot.robot_color, fill=True)
+      p_robot = patches.Polygon(t+v @ R.T, color=robot.robot_color, fill=True, zorder=3)
       self.p_robots.append(p_robot)
       self.ax_sim.add_patch(p_robot)
 
@@ -245,25 +246,7 @@ if __name__ == "__main__":
       color=Color.CYAN.value,
       center=[5, 0],
       variance=[1, 1]
-    ),
-    # bugs in painting the line shape
-    # DensityFunction(
-    #   color=Color.CYAN.value,
-    #   shape = 'line',
-    #   k=1,
-    #   a=1,
-    #   b=1,
-    #   c=1
-    # )
-    # DensityFunction(
-    #   color=Color.CYAN.value,
-    #   shape = 'ellipse',
-    #   k=2,
-    #   a=1,
-    #   b=1,
-    #   r=1,
-    #   center=[5, 0]
-    # ),
+    )
   ]
 
   env = np.array([
@@ -275,7 +258,7 @@ if __name__ == "__main__":
   ])
 
   swarm = Swarm(robots, env)
-  sim = Simulator(swarm, env)
+  sim = Simulator(swarm)
 
   color_pipe = ColorPipeline()
   location_pipe = CenterPipeline()
@@ -301,7 +284,7 @@ if __name__ == "__main__":
         continue
       
       vw = robot.coverage_control(vor_robot, delta=1)
-      color = robot.mix_color(vor_robot,
+      color = robot.coverage_control_color(vor_robot,
         swarm.cyan_density_functions,
         swarm.magenta_density_functions,
         swarm.yellow_density_functions

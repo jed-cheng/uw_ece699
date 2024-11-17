@@ -89,14 +89,14 @@ class Robot:
     self.set_mobile_base_speed(vw[0], vw[1], delta)
     return vw
 
-  def mix_color(self, vor_robot, cyan_density, magenta_density, yellow_density):
+  def coverage_control_color(self, vor_robot, cyan_density, magenta_density, yellow_density):
     color = np.zeros(4)
-    denorm = 0
+    sum_area = 0
     for c, val in vor_robot.items():
       if val is None:
         continue
       _, _, area = val
-      denorm += area
+      sum_area += area
 
     for c, val in vor_robot.items():
       if val is None:
@@ -105,22 +105,40 @@ class Robot:
       x, y = self.robot_pose[:2]
       _, _, area = val
       if c == Color.CYAN.value:
-        color[0] = area / denorm 
+        color[0] = area / sum_area 
         color[3] += cyan_density.phi(x, y)
       elif c == Color.MAGENTA.value:
-        color[1] = area / denorm
+        color[1] = area / sum_area
         color[3] += magenta_density.phi(x, y) 
       elif c == Color.YELLOW.value:
-        color[2] = area / denorm
+        color[2] = area / sum_area
         color[3] += yellow_density.phi(x, y)
    
       
-    color[3] = 1 - color[3]/3
+
+    color[3] = 1 - color[3]/len(self.equiped_color)
 
     color = 1 - color # rgb to cmy
     self.set_trail_color(color)
     return color
   
+  def coverage_control_L(self, vor_robot):
+    pass
+  
+  def coverage_control_trail_width(self, vor_robot):
+    sum_area = 0
+    for c, val in vor_robot.items():
+      if val is None:
+        continue
+      _, _, area = val
+      sum_area += area
+    
+    self.set_trail_width(sum_area/len(self.equiped_color)*self.L)
+
+  def tempo_control_L(self, tempo):
+    # 
+    pass
+
   def set_trail_width(self, width):
     self.trail_width = width
   
