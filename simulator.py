@@ -170,7 +170,7 @@ class Simulator:
 
       if len(robot.trail) > 1:
         segment = robot.trail[-2:]
-        p_segment = Line2D(segment[:,0], segment[:,1], color=robot.trail_color, linewidth=robot.trail_width)
+        p_segment = Line2D(segment[:,0], segment[:,1], color=robot.trail_color, linewidth=robot.get_trail_width())
         self.p_trails[i].append(p_segment)
         self.ax_sim.add_line(p_segment)
 

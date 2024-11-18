@@ -3,6 +3,7 @@ import numpy as np
 
 from utils import Color
 from consts import TRAIL_WIDTH, L_DEFAULT, K_DEFAULT
+from scipy.special import expit
 
 
 
@@ -27,6 +28,7 @@ class Robot:
 
     self.trail = np.array([robot_pose[:2]])
     self.trail_width = trail_width
+    self.trail_width_scalar = 1
 
     self.trail_color = robot_color
 
@@ -122,9 +124,6 @@ class Robot:
     self.set_trail_color(color)
     return color
   
-  def coverage_control_L(self, vor_robot):
-    pass
-  
   def coverage_control_trail_width(self, vor_robot):
     sum_area = 0
     for c, val in vor_robot.items():
@@ -133,14 +132,17 @@ class Robot:
       _, _, area = val
       sum_area += area
     
-    self.set_trail_width(sum_area/len(self.equiped_color)*self.L)
+    self.trail_width_scalar = sum_area/len(self.equiped_color)
 
   def tempo_control_L(self, tempo):
-    # 
-    pass
+    L = 10-(9/200)*min(tempo, 200)
+    self.L = L
 
   def set_trail_width(self, width):
     self.trail_width = width
+
+  def get_trail_width(self):
+    return expit(self.trail_width_scalar)*self.trail_width
   
   def set_L(self, L):
     self.L = L

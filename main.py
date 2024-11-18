@@ -1,5 +1,6 @@
 from multiprocessing import Queue, Process
 from queue import Empty
+from consts import RHO
 from music import get_audio_chords,  get_audio_tempo
 from pipeline import ColorPipeline, EmotionPipeline, CenterPipeline, cart2pol
 from simulator import Simulator
@@ -56,7 +57,6 @@ def proc_simulator(queue):
   prev_chord = None
 
   phi = 0
-  rho = 2
 
   sim.plot()
   sim.plot_environment()
@@ -73,8 +73,6 @@ def proc_simulator(queue):
         if i_chord != chord:
           center = i_center
           colors = i_colors
-          print(i_chord)
-
         tempo = i_tempo
         prev_chord = chord
         chord = i_chord
@@ -95,8 +93,8 @@ def proc_simulator(queue):
         type='gaussian',
         color=color.value,
         center= [
-          center[0] + np.cos(math.radians(phi)+i*step) * rho, 
-          center[1] + np.sin(math.radians(phi)+i*step) * rho
+          center[0] + np.cos(math.radians(phi)+i*step) * RHO, 
+          center[1] + np.sin(math.radians(phi)+i*step) * RHO
           ],
         variance=[2, 2]
       ) for i, color in enumerate(colors)
@@ -111,17 +109,18 @@ def proc_simulator(queue):
       if vor_robot is None:
         continue
       
-      vw = robot.coverage_control(vor_robot, delta=10)
+      robot.coverage_control(vor_robot, delta=10)
       
-      color = robot.coverage_control_color(vor_robot,
+      robot.coverage_control_color(vor_robot,
         swarm.cyan_density_functions,
         swarm.magenta_density_functions,
         swarm.yellow_density_functions
       )
 
-      robot.coverage_control_trail_width(vor_robot)
+      # robot.tempo_control_L(tempo)
+      # robot.coverage_control_trail_width(vor_robot)
 
-    phi = (phi + 1) % 360
+    phi = (phi + 2) % 360
 
     sim.plot_density_functions(density_functions)
     sim.plot_swarm()
@@ -165,7 +164,7 @@ def proc_pipeline(file_path, queue):
 
 if __name__ == '__main__':
     queue = Queue()
-    audio_file = 'c.mp3'
+    audio_file = 'demo.mp3'
     sim_p = Process(target=proc_simulator, args=(queue,))
     pipe_p = Process(target=proc_pipeline, args=(audio_file, queue))
     sim_p.start()
