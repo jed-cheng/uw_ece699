@@ -4,19 +4,46 @@ from matplotlib.lines import Line2D
 import numpy as np
 from matplotlib.colors import to_rgba
 import math
+from consts import L_DEFAULT, TRAIL_WIDTH
 from swarm import Swarm
 from robot import Robot
 import time
-from pipeline import ColorPipeline, LocationPipeline
-
+from pipeline import ColorPipeline, CenterPipeline
+from matplotlib.widgets import  Slider
 from utils import Color, DensityFunction, Emotion
 
 class Simulator:
-  def __init__(self, swarm, environment):
+  def __init__(self, swarm):
     self.swarm = swarm
-    self.environment = environment
+    self.environment = self.swarm.environment
 
-    self.figure, self.axes = plt.subplots()
+    self.fig, self.ax_sim = plt.subplots()
+    ax_l = self.fig.add_axes([0.25, 0.1, 0.65, 0.03])
+    ax_trail_width = self.fig.add_axes([0.25, 0.15, 0.65, 0.03])
+    self.l_slider = Slider(
+      ax=ax_l,
+      label='L',
+      valmin=1,
+      valmax=10,
+      valinit=L_DEFAULT,
+      valstep=1
+    )
+
+    self.trail_width_slider = Slider(
+      ax=ax_trail_width,
+      label='Trail Width',
+      valmin=1,
+      valmax=20,
+      valinit=TRAIL_WIDTH,
+      valstep=1
+    )
+    
+    self.fig.subplots_adjust(bottom=0.25)
+    self.fig.canvas.mpl_connect('button_release_event', self.on_mouse_release)
+    self.fig.canvas.mpl_connect('button_press_event', self.on_sim_click)
+
+    self.cursor_pos = None
+    
     self.p_env = None
     self.p_density = []
     self.p_robots = None
@@ -25,15 +52,32 @@ class Simulator:
     self.p_vor_cell = []
 
 
-  def plot_environment(self, environment):
+
+  def on_sim_click(self, event):
+    if event.inaxes == self.ax_sim:
+      self.cursor_pos = [event.xdata, event.ydata]
+
+  def get_cursor_pos(self):
+    pos =  self.cursor_pos
+    self.cursor_pos = None
+    return pos
+
+  def on_mouse_release(self, event):
+    if event.inaxes == self.l_slider.ax:
+      for robot in self.swarm.robots:
+        robot.set_L(self.l_slider.val)
+    if event.inaxes == self.trail_width_slider.ax:
+      for robot in self.swarm.robots:
+        robot.set_trail_width(self.trail_width_slider.val)
+
+
+  def plot_environment(self):
     if self.p_env:
       self.p_env.remove()
 
-    if environment is not None:
-      self.environment = environment
 
     self.p_env = patches.Polygon(self.environment, fill=False)
-    self.axes.add_patch(self.p_env)
+    self.ax_sim.add_patch(self.p_env)
 
 
 
@@ -69,7 +113,7 @@ class Simulator:
         rgba_image[..., :3] = base_color[:3]
         alpha_exponent = 0.3
         rgba_image[...,  3] = Z_norm**alpha_exponent         
-        p = self.axes.imshow(
+        p = self.ax_sim.imshow(
           rgba_image, 
           extent=[xmin, xmax, ymin, ymax],
           origin='lower',
@@ -89,7 +133,7 @@ class Simulator:
         rgba_image[..., :3] = base_color[:3]
         alpha_exponent = 0.3
         rgba_image[...,  3] = Z_norm**alpha_exponent         
-        p = self.axes.imshow(
+        p = self.ax_sim.imshow(
           rgba_image, 
           extent=[-range, range, -range, range],
           origin='lower',
@@ -98,14 +142,14 @@ class Simulator:
         self.p_density.append(p)
 
 
-  def plot_swarm(self, swarm):
+  def plot_swarm(self):
     if self.p_robots:
       for p in self.p_robots:
         p.remove()
 
 
     self.p_robots = []
-    for i, robot in enumerate(swarm.robots):
+    for i, robot in enumerate(self.swarm.robots):
       pose = robot.robot_pose
       size = robot.robot_size
       R = np.array([[0.0, 1.0], [-1.0, 0.0]]) @ np.array([
@@ -120,15 +164,15 @@ class Simulator:
         [size * math.sqrt(3)/2, -size/2]
       ])
 
-      p_robot = patches.Polygon(t+v @ R.T, color=robot.robot_color, fill=True)
+      p_robot = patches.Polygon(t+v @ R.T, color=robot.robot_color, fill=True, zorder=3)
       self.p_robots.append(p_robot)
-      self.axes.add_patch(p_robot)
+      self.ax_sim.add_patch(p_robot)
 
       if len(robot.trail) > 1:
         segment = robot.trail[-2:]
         p_segment = Line2D(segment[:,0], segment[:,1], color=robot.trail_color, linewidth=robot.trail_width)
         self.p_trails[i].append(p_segment)
-        self.axes.add_line(p_segment)
+        self.ax_sim.add_line(p_segment)
 
   def plot_voronoi(self, vor_centroid, vor_cell, 
     refresh=True,
@@ -143,12 +187,12 @@ class Simulator:
     for centroid in vor_centroid:
       p = patches.Circle(centroid, radius=centroid_size, fill=True, color=centroid_color)
       self.p_vor_centroid.append(p)
-      self.axes.add_patch(p)
+      self.ax_sim.add_patch(p)
 
     for cell in vor_cell:
       p = patches.Polygon(cell, fill=False, closed=True, color=boundary_color)
       self.p_vor_cell.append(p)
-      self.axes.add_patch(p)
+      self.ax_sim.add_patch(p)
 
   def clear_voronoi(self):
     for p_vor_centroid in self.p_vor_centroid:
@@ -161,14 +205,14 @@ class Simulator:
   def plot(self):
     # self.axes.autoscale()
     # self.axes.set_aspect('equal')
-    self.axes.set_xlim(-10, 10)  # Adjust the limits as needed
-    self.axes.set_ylim(-10, 10)  # Adjust the limits as needed
+    self.ax_sim.set_xlim(-10, 10)  # Adjust the limits as needed
+    self.ax_sim.set_ylim(-10, 10)  # Adjust the limits as needed
     plt.ion()
     plt.show()
 
   def update_plot(self):
-    self.figure.canvas.draw_idle()
-    self.figure.canvas.flush_events()
+    self.fig.canvas.draw_idle()
+    self.fig.canvas.flush_events()
 
 
 if __name__ == "__main__":
@@ -202,30 +246,7 @@ if __name__ == "__main__":
       color=Color.CYAN.value,
       center=[5, 0],
       variance=[1, 1]
-    ),
-    DensityFunction(
-      color=Color.MAGENTA.value,
-      center=[-5, 0],
-      variance=[1, 1]
-    ),
-    # bugs in painting the line shape
-    # DensityFunction(
-    #   color=Color.CYAN.value,
-    #   shape = 'line',
-    #   k=1,
-    #   a=1,
-    #   b=1,
-    #   c=1
-    # )
-    # DensityFunction(
-    #   color=Color.CYAN.value,
-    #   shape = 'ellipse',
-    #   k=2,
-    #   a=1,
-    #   b=1,
-    #   r=1,
-    #   center=[5, 0]
-    # ),
+    )
   ]
 
   env = np.array([
@@ -237,10 +258,10 @@ if __name__ == "__main__":
   ])
 
   swarm = Swarm(robots, env)
-  sim = Simulator(swarm, env)
+  sim = Simulator(swarm)
 
   color_pipe = ColorPipeline()
-  location_pipe = LocationPipeline()
+  location_pipe = CenterPipeline()
   
   # get all emotions of Emotion
   emotions = list(Emotion)
@@ -251,23 +272,6 @@ if __name__ == "__main__":
   sim.plot()
 
   for i in range(1000):
-    if i % 100 == 0:
-      idx = i // 100
-      color_pipe.receive_emotions([emotions[idx]])
-      colors = color_pipe.predict_colors()
-
-      location_pipe.receive_emotions([emotions[idx]])
-      locations = location_pipe.predict_locations()
-
-      density_functions = [
-        DensityFunction(
-          type='gaussian',
-          color=color_pipe.get_colors()[j].value,
-          center=location_pipe.get_locations()[j],
-          variance=[3, 3]
-        ) for j in range(len(colors))
-      ]
-      sim.plot_density_functions(density_functions)
 
     vor_robots, vor_prime = swarm.color_coverage_control(density_functions)
 
@@ -279,14 +283,14 @@ if __name__ == "__main__":
       if vor_robot is None:
         continue
       
-      vw = robot.coverage_control(vor_robot, L=1, delta=10)
-      color = robot.mix_color(vor_robot,
+      vw = robot.coverage_control(vor_robot, delta=1)
+      color = robot.coverage_control_color(vor_robot,
         swarm.cyan_density_functions,
         swarm.magenta_density_functions,
         swarm.yellow_density_functions
        ) 
 
-      print(j,vw, color)
+      # print(j,vw, color)
 
 
     sim.plot_swarm(swarm)

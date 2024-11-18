@@ -1,14 +1,9 @@
-import time
 import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib import patches
 from robot import Robot
 from scipy.spatial import Voronoi
 from voronoi import voronoi_centroids
 from matplotlib.colors import hex2color, to_hex
-import random
 from utils import Color, DensityFunction
-import copy
 
 # rgb hex to cmy
 def hex_to_cmy(color):
@@ -29,7 +24,6 @@ class Swarm:
     self.cyan_density_functions = None
     self.magenta_density_functions = None
     self.yellow_density_functions = None
-    # self.get_prime_density_functions(density_functions)
 
 
 
@@ -187,7 +181,25 @@ class Swarm:
     return vor_centroid, vor_cell, vor_area 
 
 
+  def run(self, density_functions, L=1):
+    vor_robots, vor_prime = self.color_coverage_control(density_functions)
 
+    # run until all robots are in their voronoi cell
+    while True:
+      for j in range(len(robots)):
+        robot = robots[j]
+        vor_robot = vor_robots[j]
+
+        if vor_robot is None:
+          continue
+        
+        vw = robot.coverage_control(vor_robot, L, delta=10)
+        
+        color = robot.coverage_control_color(vor_robot,
+          swarm.cyan_density_functions,
+          swarm.magenta_density_functions,
+          swarm.yellow_density_functions
+        )
 
 
 

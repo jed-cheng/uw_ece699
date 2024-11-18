@@ -1,9 +1,8 @@
 import math, time
 import numpy as np
-from matplotlib import patches
-from matplotlib.lines import Line2D
 
 from utils import Color
+from consts import TRAIL_WIDTH, L_DEFAULT, K_DEFAULT
 
 
 
@@ -14,10 +13,10 @@ class Robot:
     equiped_color,
     robot_size = 0.5,
     robot_color = 'black',
-    trail_width = 5,
+    trail_width = TRAIL_WIDTH,
+    K = K_DEFAULT,
+    L = L_DEFAULT,
     TIMEOUT_SET_MOBILE_BASE_SPEED = 0,
-    K = 1,
-    L = 1
   ):
 
     self.robot_pose = robot_pose
@@ -36,8 +35,7 @@ class Robot:
     self.K = K
     self.L = L
 
-    # initialize robot
-    # self.__init_plot()
+
     self.last_time_set_mobile_base_speed = int(round(time.time()*1000))
     self.last_time_get_poses = int(round(time.time()*1000))
 
@@ -70,7 +68,7 @@ class Robot:
     return vw
 
 
-  def coverage_control(self, vor_robot ,L = None, delta=None):
+  def coverage_control(self, vor_robot , delta=None):
 
     u = np.zeros(2)
     for color, val in vor_robot.items():
@@ -85,20 +83,20 @@ class Robot:
       [-math.sin(self.robot_pose[2]), math.cos(self.robot_pose[2])]
     ])
     #
-    L = L if L is not None else 1
-    vw = np.array([[1,0], [0,1/L]]) @ R @ u
+    
+    vw = np.array([[1,0], [0,1/self.L]]) @ R @ u
 
     self.set_mobile_base_speed(vw[0], vw[1], delta)
     return vw
 
-  def mix_color(self, vor_robot, cyan_density, magenta_density, yellow_density):
+  def coverage_control_color(self, vor_robot, cyan_density, magenta_density, yellow_density):
     color = np.zeros(4)
-    denorm = 0
+    sum_area = 0
     for c, val in vor_robot.items():
       if val is None:
         continue
       _, _, area = val
-      denorm += area
+      sum_area += area
 
     for c, val in vor_robot.items():
       if val is None:
@@ -107,26 +105,45 @@ class Robot:
       x, y = self.robot_pose[:2]
       _, _, area = val
       if c == Color.CYAN.value:
-        color[0] = area / denorm 
+        color[0] = area / sum_area 
         color[3] += cyan_density.phi(x, y)
       elif c == Color.MAGENTA.value:
-        color[1] = area / denorm
+        color[1] = area / sum_area
         color[3] += magenta_density.phi(x, y) 
       elif c == Color.YELLOW.value:
-        color[2] = area / denorm
+        color[2] = area / sum_area
         color[3] += yellow_density.phi(x, y)
    
       
-    color[3] = 1 - color[3]/3
+
+    color[3] = 1 - color[3]/len(self.equiped_color)
 
     color = 1 - color # rgb to cmy
     self.set_trail_color(color)
     return color
+  
+  def coverage_control_L(self, vor_robot):
+    pass
+  
+  def coverage_control_trail_width(self, vor_robot):
+    sum_area = 0
+    for c, val in vor_robot.items():
+      if val is None:
+        continue
+      _, _, area = val
+      sum_area += area
     
+    self.set_trail_width(sum_area/len(self.equiped_color)*self.L)
 
+  def tempo_control_L(self, tempo):
+    # 
+    pass
 
-      
-      
+  def set_trail_width(self, width):
+    self.trail_width = width
+  
+  def set_L(self, L):
+    self.L = L
   
   def set_trail_color(self, color):
     self.trail_color = color
