@@ -2,7 +2,7 @@ import essentia.streaming as ess
 import essentia.standard as esd
 import essentia
 import time
-from mutagen import File
+# from mutagen import File
 import numpy as np
 
 
@@ -40,11 +40,11 @@ def get_audio_chords(file_path):
   chords, strength = esd.ChordsDetection(windowSize=2)(pool['tonal.hpcp'])
   return chords
 
-def get_audio_duration(file_path):
-  audio = File(file_path)
-  if audio is not None and audio.info is not None:
-    return audio.info.length
-  return None
+# def get_audio_duration(file_path):
+#   audio = File(file_path)
+#   if audio is not None and audio.info is not None:
+#     return audio.info.length
+#   return None
 
 
 def get_audio_tempo(file_path):
@@ -89,5 +89,3 @@ if __name__ == '__main__':
   print(len(chords))
   print(True if 'm' in chords else False)
   
-  duration = get_audio_duration(audio_file)
-  print(duration)
