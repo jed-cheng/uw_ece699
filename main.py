@@ -14,30 +14,7 @@ from utils import Color, DensityFunction
 import time
 
 
-def proc_simulator(queue):
-  robot_1 = Robot( 
-    robot_pose=[0, -5, 0.0],
-    equiped_color=[Color.CYAN.value, Color.MAGENTA.value],
-    K=1
-  )
-  robot_2 = Robot( 
-    robot_pose=[0, 5, 0.0],
-    equiped_color=[Color.CYAN.value, Color.MAGENTA.value],
-    K=1
-  )
-  robot_3 = Robot( 
-    robot_pose=[-5, -6, 0.0],
-    equiped_color=[Color.CYAN.value]
-  )
-  robot_4 = Robot( 
-    robot_pose=[5, -5, 0.0],
-    equiped_color=[Color.CYAN.value]
-  )
-  robot_5 = Robot(
-    robot_pose=[0, 0, 0.0],
-    equiped_color=[Color.CYAN.value, Color.MAGENTA.value]
-  )
-  robots = [robot_1, robot_2, robot_3, robot_4, robot_5]
+def proc_simulator(queue, robots):
 
   env = np.array([
     [10, 10],
@@ -162,20 +139,33 @@ def proc_pipeline(file_path, queue):
   queue.put(None)
 
 
+
+
+
+
 if __name__ == '__main__':
-    queue = Queue()
-    audio_file = 'demo.mp3'
-    sim_p = Process(target=proc_simulator, args=(queue,))
-    pipe_p = Process(target=proc_pipeline, args=(audio_file, queue))
-    sim_p.start()
-    pipe_p.start()
+  full_color = [Color.CYAN.value, Color.MAGENTA.value, Color.YELLOW.value]
+  poses = [[i,0,0] for i in range(-3,4)]
+  colors = [full_color for _ in range(len(poses))]
+  robots = [Robot(
+    robot_pose=pose, 
+    equiped_color=color
+  ) for pose, color in zip(poses, colors)]
 
 
-  # listen to user input
-  # listen to music
-  # send to pipeline
+  queue = Queue()
+  audio_file = 'music/spotifydown.com - Gymnopédie No. 1.mp3'
+  sim_p = Process(target=proc_simulator, args=(queue, robots))
+  pipe_p = Process(target=proc_pipeline, args=(audio_file, queue))
+  sim_p.start()
+  pipe_p.start()
 
-    sim_p.join()
-    pipe_p.join()
-    queue.close()
-    print('done')
+
+# listen to user input
+# listen to music
+# send to pipeline
+
+  sim_p.join()
+  pipe_p.join()
+  queue.close()
+  print('done')

@@ -204,7 +204,7 @@ class Simulator:
 
   def plot(self):
     # self.axes.autoscale()
-    # self.axes.set_aspect('equal')
+    self.ax_sim.set_aspect('equal')
     self.ax_sim.set_xlim(-10, 10)  # Adjust the limits as needed
     self.ax_sim.set_ylim(-10, 10)  # Adjust the limits as needed
     plt.ion()
