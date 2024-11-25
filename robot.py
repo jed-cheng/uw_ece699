@@ -2,7 +2,7 @@ import math, time
 import numpy as np
 
 from utils import Color
-from consts import TRAIL_WIDTH, L_DEFAULT, K_DEFAULT
+from consts import L_MAX, L_MIN, TEMPO_MAX, TRAIL_WIDTH, L_DEFAULT, K_DEFAULT
 from scipy.special import expit
 
 
@@ -36,6 +36,7 @@ class Robot:
     self.TIMEOUT_GET_POSES = 0 # milliseconds
     self.K = K
     self.L = L
+    self.L_scalar = 10
 
 
     self.last_time_set_mobile_base_speed = int(round(time.time()*1000))
@@ -86,7 +87,7 @@ class Robot:
     ])
     #
     
-    vw = np.array([[1,0], [0,1/self.L]]) @ R @ u
+    vw = np.array([[1,0], [0,1/self.get_L()]]) @ R @ u
 
     self.set_mobile_base_speed(vw[0], vw[1], delta)
     return vw
@@ -135,14 +136,16 @@ class Robot:
     self.trail_width_scalar = sum_area/len(self.equiped_color)
 
   def tempo_control_L(self, tempo):
-    L = 10-(9/200)*min(tempo, 200)
-    self.L = L
+    self.L_scalar = 5-((4)/TEMPO_MAX)*min(tempo, TEMPO_MAX)
+
+  def get_L(self):
+    return self.L_scalar * self.L
 
   def set_trail_width(self, width):
     self.trail_width = width
 
   def get_trail_width(self):
-    return expit(self.trail_width_scalar)*self.trail_width
+    return min(self.trail_width_scalar, 10)/2+self.trail_width
   
   def set_L(self, L):
     self.L = L

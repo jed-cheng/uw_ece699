@@ -4,7 +4,7 @@ from matplotlib.lines import Line2D
 import numpy as np
 from matplotlib.colors import to_rgba
 import math
-from consts import L_DEFAULT, TRAIL_WIDTH
+from consts import L_DEFAULT, L_MAX, L_MIN, TRAIL_WIDTH, TRAIL_WIDTH_MAX, TRAIL_WIDTH_MIN
 from swarm import Swarm
 from robot import Robot
 import time
@@ -23,8 +23,8 @@ class Simulator:
     self.l_slider = Slider(
       ax=ax_l,
       label='L',
-      valmin=1,
-      valmax=10,
+      valmin=L_MIN,
+      valmax=L_MAX,
       valinit=L_DEFAULT,
       valstep=1
     )
@@ -32,8 +32,8 @@ class Simulator:
     self.trail_width_slider = Slider(
       ax=ax_trail_width,
       label='Trail Width',
-      valmin=1,
-      valmax=20,
+      valmin=TRAIL_WIDTH_MIN,
+      valmax=TRAIL_WIDTH_MAX,
       valinit=TRAIL_WIDTH,
       valstep=1
     )
@@ -170,7 +170,7 @@ class Simulator:
 
       if len(robot.trail) > 1:
         segment = robot.trail[-2:]
-        p_segment = Line2D(segment[:,0], segment[:,1], color=robot.trail_color, linewidth=robot.get_trail_width())
+        p_segment = Line2D(segment[:,0], segment[:,1], color=robot.trail_color, linewidth=robot.trail_width)
         self.p_trails[i].append(p_segment)
         self.ax_sim.add_line(p_segment)
 
@@ -203,7 +203,6 @@ class Simulator:
     self.p_vor_cell = []
 
   def plot(self):
-    # self.axes.autoscale()
     self.ax_sim.set_aspect('equal')
     self.ax_sim.set_xlim(-10, 10)  # Adjust the limits as needed
     self.ax_sim.set_ylim(-10, 10)  # Adjust the limits as needed

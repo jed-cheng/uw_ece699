@@ -1,6 +1,6 @@
 from multiprocessing import Queue, Process
 from queue import Empty
-from consts import RHO
+from consts import RHO, VARANCE_X, VARANCE_Y
 from music import get_audio_chords,  get_audio_tempo
 from pipeline import ColorPipeline, EmotionPipeline, CenterPipeline, cart2pol
 from simulator import Simulator
@@ -62,6 +62,7 @@ def proc_simulator(queue, robots):
 
     if sim.cursor_pos is not None and prev_chord == chord:
       center = sim.get_cursor_pos()
+      
 
 
     step = 2 * np.pi / len(colors)
@@ -70,10 +71,10 @@ def proc_simulator(queue, robots):
         type='gaussian',
         color=color.value,
         center= [
-          center[0] + np.cos(math.radians(phi)+i*step) * RHO, 
-          center[1] + np.sin(math.radians(phi)+i*step) * RHO
+          center[0] + np.cos(i*step) * RHO + np.cos(math.radians(phi)) * RHO, 
+          center[1] + np.sin(i*step) * RHO + np.sin(math.radians(phi)) * RHO
           ],
-        variance=[2, 2]
+        variance=[VARANCE_X, VARANCE_Y]
       ) for i, color in enumerate(colors)
     ]
 
@@ -94,8 +95,7 @@ def proc_simulator(queue, robots):
         swarm.yellow_density_functions
       )
 
-      # robot.tempo_control_L(tempo)
-      # robot.coverage_control_trail_width(vor_robot)
+      robot.tempo_control_L(tempo)
 
     phi = (phi + 2) % 360
 
@@ -154,7 +154,7 @@ if __name__ == '__main__':
 
 
   queue = Queue()
-  audio_file = 'music/spotifydown.com - Gymnopédie No. 1.mp3'
+  audio_file = 'music/Gymnopédie No. 1.mp3'
   sim_p = Process(target=proc_simulator, args=(queue, robots))
   pipe_p = Process(target=proc_pipeline, args=(audio_file, queue))
   sim_p.start()
