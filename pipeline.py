@@ -27,6 +27,7 @@ class EmotionPipeline:
     'B': Chord.MAJOR,
     'Bm': Chord.MINOR,
     'Bb': Chord.MAJOR,
+    'Bbm': Chord.MINOR,
     
     'C': Chord.MAJOR,
     'Cm': Chord.MINOR,
@@ -125,6 +126,7 @@ class CenterPipeline:
     'B': pol2cart(150, self.R),
     'F#': pol2cart(180, self.R),
     'Db': pol2cart(210, self.R),
+    'C#': pol2cart(210, self.R),
     'Ab': pol2cart(240, self.R),
     'Eb': pol2cart(270, self.R),
     'Bb': pol2cart(300, self.R),

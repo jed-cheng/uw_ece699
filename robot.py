@@ -34,6 +34,8 @@ class Robot:
 
     self.TIMEOUT_SET_MOBILE_BASE_SPEED = TIMEOUT_SET_MOBILE_BASE_SPEED
     self.TIMEOUT_GET_POSES = 0 # milliseconds
+    self.MAX_LINEAR_SPEED = 4 # meters / second
+    self.MAX_ANGULAR_SPEED = 30 # degrees / second
     self.K = K
     self.L = L
     self.L_scalar = 10
@@ -45,6 +47,7 @@ class Robot:
   def set_mobile_base_speed(self, v:float,  w:float, delta=None):
     delta_time_set_mobile_base_speed = int(round(time.time()*1000)) - self.last_time_set_mobile_base_speed if delta is None else delta
     if delta_time_set_mobile_base_speed > self.TIMEOUT_SET_MOBILE_BASE_SPEED:
+      v, omega = self.__saturate_speeds(v, w)
       self.robot_pose[0] = self.robot_pose[0] + (v * math.cos(self.robot_pose[2])) * delta_time_set_mobile_base_speed / 1000.0
       self.robot_pose[1] = self.robot_pose[1] + (v * math.sin(self.robot_pose[2])) * delta_time_set_mobile_base_speed / 1000.0
       self.robot_pose[2] = self.robot_pose[2] + w * delta_time_set_mobile_base_speed / 1000.0
@@ -57,7 +60,13 @@ class Robot:
       pass
     self.last_time_get_poses = int(round(time.time()*1000))
     return self.robot_pose
-  
+
+
+  def __saturate_speeds(self, v, omega):
+    v = max(-self.MAX_LINEAR_SPEED, min(v, self.MAX_LINEAR_SPEED))
+    omega = max(-self.MAX_ANGULAR_SPEED, min(omega, self.MAX_ANGULAR_SPEED))
+    return v, omega
+
   def move_to_point(self, point, delta=None):
     u = self.K * (point - self.robot_pose[:2])
     R = np.array([
@@ -136,7 +145,7 @@ class Robot:
     self.trail_width_scalar = sum_area/len(self.equiped_color)
 
   def tempo_control_L(self, tempo):
-    self.L_scalar = 5-((4)/TEMPO_MAX)*min(tempo, TEMPO_MAX)
+    self.L_scalar = 10-((9)/TEMPO_MAX)*min(tempo, TEMPO_MAX)
 
   def get_L(self):
     return self.L_scalar * self.L

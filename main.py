@@ -6,7 +6,10 @@ from pipeline import ColorPipeline, EmotionPipeline, CenterPipeline, cart2pol
 from simulator import Simulator
 from robot import Robot
 from swarm import Swarm
+import matplotlib.pyplot as plt
 import math
+from argparse import ArgumentParser
+
 
 import numpy as np
 
@@ -14,7 +17,7 @@ from utils import Color, DensityFunction
 import time
 
 
-def proc_simulator(queue, robots):
+def proc_simulator(queue, robots, output_file):
 
   env = np.array([
     [10, 10],
@@ -44,6 +47,7 @@ def proc_simulator(queue, robots):
     try:
       item = queue.get_nowait()
       if item is None:
+        plt.savefig(output_file)
         break
       else:
         i_chord, i_colors, i_center, i_tempo = item
@@ -62,7 +66,7 @@ def proc_simulator(queue, robots):
 
     if sim.cursor_pos is not None and prev_chord == chord:
       center = sim.get_cursor_pos()
-      
+
 
 
     step = 2 * np.pi / len(colors)
@@ -97,26 +101,19 @@ def proc_simulator(queue, robots):
 
       robot.tempo_control_L(tempo)
 
-    phi = (phi + 2) % 360
+    phi = (phi + 1) % 360
 
-    sim.plot_density_functions(density_functions)
+    # sim.plot_density_functions(density_functions)
     sim.plot_swarm()
     sim.update_plot()
-
-
-
-
-
-
-
-
-
-
 
 
 def proc_pipeline(file_path, queue):
   chords = get_audio_chords(file_path)
   tempos = get_audio_tempo(file_path)
+
+  chords += [chords[-1]] * 10
+  tempos += [tempos[-1]] * 10
 
   emotion_pipeline = EmotionPipeline()
   color_pipeline = ColorPipeline()
@@ -144,6 +141,16 @@ def proc_pipeline(file_path, queue):
 
 
 if __name__ == '__main__':
+
+  # get parameters from args
+  parser = ArgumentParser()
+  parser.add_argument('audio', type=str, help='audio file path')
+  parser.add_argument('--output', type=str, help='output file path', default='output.png')
+  args = parser.parse_args()
+  audio_file = args.audio
+  output_file = args.output
+
+
   full_color = [Color.CYAN.value, Color.MAGENTA.value, Color.YELLOW.value]
   poses = [[i,0,0] for i in range(-3,4)]
   colors = [full_color for _ in range(len(poses))]
@@ -154,8 +161,7 @@ if __name__ == '__main__':
 
 
   queue = Queue()
-  audio_file = 'music/Gymnopédie No. 1.mp3'
-  sim_p = Process(target=proc_simulator, args=(queue, robots))
+  sim_p = Process(target=proc_simulator, args=(queue, robots, output_file))
   pipe_p = Process(target=proc_pipeline, args=(audio_file, queue))
   sim_p.start()
   pipe_p.start()
