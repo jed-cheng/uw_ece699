@@ -1,5 +1,4 @@
-from multiprocessing import Queue, Process
-from queue import Empty
+from multiprocessing import Process, Pipe
 from consts import RHO, VARANCE_X, VARANCE_Y
 from music import get_audio_chords,  get_audio_tempo
 from pipeline import ColorPipeline, EmotionPipeline, CenterPipeline, cart2pol
@@ -9,15 +8,13 @@ from swarm import Swarm
 import matplotlib.pyplot as plt
 import math
 from argparse import ArgumentParser
-
-
+import select
 import numpy as np
-
 from utils import Color, DensityFunction
 import time
 
 
-def proc_simulator(queue, robots, output_file):
+def proc_simulator(conn, robots, output_file):
 
   env = np.array([
     [10, 10],
@@ -44,12 +41,16 @@ def proc_simulator(queue, robots, output_file):
 
 
   while True:
-    try:
-      item = queue.get_nowait()
+    readable, _, _ = select.select([conn], [], [], 0.01)  # 0.1 is the timeout in seconds
+    if conn in readable:
+      item = conn.recv()
       if item is None:
-        plt.savefig(output_file)
-        break
-      else:
+          plt.savefig(output_file)
+          conn.close()
+          break
+      elif item is not None:
+        # print('simulator receive:', item)
+
         i_chord, i_colors, i_center, i_tempo = item
         if i_chord != chord:
           center = i_center
@@ -58,8 +59,7 @@ def proc_simulator(queue, robots, output_file):
         prev_chord = chord
         chord = i_chord
 
-    except Empty:
-      pass
+
 
     if center is None or colors is None:
       continue
@@ -75,8 +75,8 @@ def proc_simulator(queue, robots, output_file):
         type='gaussian',
         color=color.value,
         center= [
-          center[0] + np.cos(i*step) * RHO + np.cos(math.radians(phi)) * RHO, 
-          center[1] + np.sin(i*step) * RHO + np.sin(math.radians(phi)) * RHO
+          center[0] + np.cos(i*step+math.radians(phi)) * RHO + np.cos(math.radians(phi)) * RHO, 
+          center[1] + np.sin(i*step+math.radians(phi)) * RHO + np.sin(math.radians(phi)) * RHO
           ],
         variance=[VARANCE_X, VARANCE_Y]
       ) for i, color in enumerate(colors)
@@ -100,6 +100,7 @@ def proc_simulator(queue, robots, output_file):
       )
 
       robot.tempo_control_L(tempo)
+      # print(robot.get_L())
 
     phi = (phi + 1) % 360
 
@@ -108,32 +109,6 @@ def proc_simulator(queue, robots, output_file):
     sim.update_plot()
 
 
-def proc_pipeline(file_path, queue):
-  chords = get_audio_chords(file_path)
-  tempos = get_audio_tempo(file_path)
-
-  chords += [chords[-1]] * 10
-  tempos += [tempos[-1]] * 10
-
-  emotion_pipeline = EmotionPipeline()
-  color_pipeline = ColorPipeline()
-  center_pipeline = CenterPipeline()
-
-  for i in range(min(len(chords), len(tempos))):
-    chord = chords[i]
-    tempo = tempos[i]
-    emotions = emotion_pipeline.predict_emotion(chord)
-    colors = color_pipeline.predict_colors(emotions)
-    center = center_pipeline.predict_center(chord)
-
-
-
-    # zip color and location
-    output = (chord, colors, center, tempo)
-    queue.put(output)
-    time.sleep(1)
-
-  queue.put(None)
 
 
 
@@ -160,18 +135,36 @@ if __name__ == '__main__':
   ) for pose, color in zip(poses, colors)]
 
 
-  queue = Queue()
-  sim_p = Process(target=proc_simulator, args=(queue, robots, output_file))
-  pipe_p = Process(target=proc_pipeline, args=(audio_file, queue))
+  chords = get_audio_chords(audio_file)
+  tempos = get_audio_tempo(audio_file)
+
+  chords += [chords[-1]] * 10
+  tempos += [tempos[-1]] * 10
+
+  emotion_pipeline = EmotionPipeline()
+  color_pipeline = ColorPipeline()
+  center_pipeline = CenterPipeline()
+
+  in_conn, out_conn = Pipe()
+  sim_p = Process(target=proc_simulator, args=(out_conn, robots, output_file))
   sim_p.start()
-  pipe_p.start()
 
+  for i in range(min(len(chords), len(tempos))):
+    # print(f'Processing {i+1}/{len(chords)}')
+    chord = chords[i]
+    tempo = tempos[i]
+    emotions = emotion_pipeline.predict_emotion(chord)
+    colors = color_pipeline.predict_colors(emotions)
+    center = center_pipeline.predict_center(chord)
 
-# listen to user input
-# listen to music
-# send to pipeline
+    output = (chord, colors, center, tempo)
+    in_conn.send(output)
+    time.sleep(1)
+  
+  in_conn.send(None)
+
 
   sim_p.join()
-  pipe_p.join()
-  queue.close()
+  in_conn.close()
+  out_conn.close()
   print('done')

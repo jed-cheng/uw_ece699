@@ -52,8 +52,8 @@ def get_audio_tempo(file_path):
     audio = loader()
 
     sample_rate = 44100  # Assuming a sample rate of 44.1 kHz
-    window_size = sample_rate  # 2 second window
-    hop_size = window_size    # overlapping windows
+    window_size = sample_rate*8  # 2 second window
+    hop_size = sample_rate   # overlapping windows
 
     rhythm_extractor = esd.RhythmExtractor2013(method="multifeature")
 
@@ -72,7 +72,8 @@ def get_audio_tempo(file_path):
 
 
 if __name__ == '__main__':
-  audio_file = 'music/ Grande valse brillante in E-Flat Major, Op. 18.mp3'
+  audio_file = 'music/Gymnopédie No. 1.mp3'
+  # audio_file = 'music/3 Waltzes, Op. 64_ No. 1 in D-Flat Major _Minute_.mp3'
   tempo = get_audio_tempo(audio_file)
   print(tempo)
   print(len(tempo))
