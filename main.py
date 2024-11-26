@@ -14,7 +14,7 @@ from utils import Color, DensityFunction
 import time
 
 
-def proc_simulator(conn, robots, output_file):
+def proc_simulator(conn, robots, output_file, val_trail, val_L):
 
   env = np.array([
     [10, 10],
@@ -25,7 +25,7 @@ def proc_simulator(conn, robots, output_file):
   ])
 
   swarm = Swarm(robots, env)
-  sim = Simulator(swarm)
+  sim = Simulator(swarm, val_trail, val_L)
 
   colors = None
   center = None
@@ -109,7 +109,21 @@ def proc_simulator(conn, robots, output_file):
     sim.update_plot()
 
 
-
+def init_robots(num_robot, num_color,val_L,val_trail):
+  full_color = [Color.CYAN.value, Color.MAGENTA.value, Color.YELLOW.value]
+  # place robots evenly on x-axis from -8 to 8
+  poses  = [[i,0,0] for i in np.linspace(-8, 8, num_robot)]
+  colors = [
+      [full_color[(i + j) % len(full_color)] for j in range(num_color)]
+      for i in range(len(poses))
+  ]
+  robots = [Robot(
+    robot_pose=pose, 
+    equiped_color=color,
+    L = val_L,
+    trail_width=val_trail
+  ) for pose, color in zip(poses, colors)]
+  return robots
 
 
 
@@ -121,20 +135,23 @@ if __name__ == '__main__':
   parser = ArgumentParser()
   parser.add_argument('audio', type=str, help='audio file path')
   parser.add_argument('--output', type=str, help='output file path', default='output.png')
+  
+  parser.add_argument('--l', type=float, help='l', default=1.0)
+  parser.add_argument('--trail', type=int, help='trail width', default=15)
+  parser.add_argument('--robot', type=int, help='number of robot', default=6)
+  parser.add_argument('--color', type=int, help='number of equipped color for each robot', default=3)
+
   args = parser.parse_args()
   audio_file = args.audio
   output_file = args.output
 
-
-  full_color = [Color.CYAN.value, Color.MAGENTA.value, Color.YELLOW.value]
-  poses = [[i,0,0] for i in range(-3,4)]
-  colors = [full_color for _ in range(len(poses))]
-  robots = [Robot(
-    robot_pose=pose, 
-    equiped_color=color
-  ) for pose, color in zip(poses, colors)]
+  num_robot = args.robot
+  num_color = args.color
+  val_trail = args.trail
+  val_L = args.l
 
 
+  # get chords and tempos from audio file
   chords = get_audio_chords(audio_file)
   tempos = get_audio_tempo(audio_file)
 
@@ -145,8 +162,52 @@ if __name__ == '__main__':
   color_pipeline = ColorPipeline()
   center_pipeline = CenterPipeline()
 
+
+  full_color = [Color.CYAN.value, Color.MAGENTA.value, Color.YELLOW.value]
+  # place robots evenly on x-axis from -8 to 8
+  poses  = [[i,0,0] for i in np.linspace(-8, 8, num_robot)]
+  # colors = [
+  #   [Color.CYAN.value],
+  #   [Color.MAGENTA.value],
+  #   [Color.YELLOW.value, Color.CYAN.value],
+  #   [Color.MAGENTA.value, Color.YELLOW.value],
+  #   full_color,
+  #   full_color
+  # ]
+  # colors = [
+  #   [Color.CYAN.value],
+  #   [Color.MAGENTA.value],
+  #   [Color.YELLOW.value],
+  #   [Color.YELLOW.value, Color.CYAN.value],
+  #   [Color.MAGENTA.value, Color.YELLOW.value],
+  #   [Color.CYAN.value, Color.MAGENTA.value]
+  # ]
+  # colors = [
+  #   [Color.YELLOW.value, Color.CYAN.value],
+  #   [Color.MAGENTA.value, Color.YELLOW.value],
+  #   [Color.CYAN.value, Color.MAGENTA.value],
+  #   full_color,
+  #   full_color,
+  #   full_color
+  # ]
+  colors = [
+    [Color.CYAN.value],
+    [Color.MAGENTA.value],
+    [Color.YELLOW.value],
+    full_color,
+    full_color,
+    full_color
+  ]
+  robots = [Robot(
+    robot_pose=pose, 
+    equiped_color=color,
+    L = val_L,
+    trail_width=val_trail
+  ) for pose, color in zip(poses, colors)]
+
+
   in_conn, out_conn = Pipe()
-  sim_p = Process(target=proc_simulator, args=(out_conn, robots, output_file))
+  sim_p = Process(target=proc_simulator, args=(out_conn, robots, output_file, val_trail, val_L))
   sim_p.start()
 
   for i in range(min(len(chords), len(tempos))):

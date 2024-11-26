@@ -13,7 +13,7 @@ from matplotlib.widgets import  Slider
 from utils import Color, DensityFunction, Emotion
 
 class Simulator:
-  def __init__(self, swarm):
+  def __init__(self, swarm, val_trail = TRAIL_WIDTH, val_L = L_DEFAULT):
     self.swarm = swarm
     self.environment = self.swarm.environment
 
@@ -25,7 +25,7 @@ class Simulator:
       label='L',
       valmin=L_MIN,
       valmax=L_MAX,
-      valinit=L_DEFAULT,
+      valinit=val_L,
       valstep=1
     )
 
@@ -34,7 +34,7 @@ class Simulator:
       label='Trail Width',
       valmin=TRAIL_WIDTH_MIN,
       valmax=TRAIL_WIDTH_MAX,
-      valinit=TRAIL_WIDTH,
+      valinit=val_trail,
       valstep=1
     )
     
