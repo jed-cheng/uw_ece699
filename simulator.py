@@ -117,7 +117,6 @@ class Simulator:
           rgba_image, 
           extent=[xmin, xmax, ymin, ymax],
           origin='lower',
-          aspect='auto'
         )
         self.p_density.append(p)
       else:
@@ -185,12 +184,12 @@ class Simulator:
       self.clear_voronoi()
 
     for centroid in vor_centroid:
-      p = patches.Circle(centroid, radius=centroid_size, fill=True, color=centroid_color)
+      p = patches.Circle(centroid, radius=centroid_size, fill=True, color=centroid_color,zorder=3)
       self.p_vor_centroid.append(p)
       self.ax_sim.add_patch(p)
 
     for cell in vor_cell:
-      p = patches.Polygon(cell, fill=False, closed=True, color=boundary_color)
+      p = patches.Polygon(cell, fill=False, closed=True, color=boundary_color, zorder=3)
       self.p_vor_cell.append(p)
       self.ax_sim.add_patch(p)
 
@@ -227,24 +226,26 @@ if __name__ == "__main__":
   )
   robot_3 = Robot( 
     robot_pose=[-5, -6, 0.0],
-    equiped_color=[Color.CYAN.value]
+    equiped_color=[Color.MAGENTA.value]
+    
   )
   robot_4 = Robot( 
     robot_pose=[5, -5, 0.0],
     equiped_color=[Color.CYAN.value]
   )
-  robot_5 = Robot(
-    robot_pose=[0, 0, 0.0],
-    equiped_color=[Color.CYAN.value, Color.MAGENTA.value]
-  )
-  robots = [robot_1, robot_2, robot_3, robot_4, robot_5]
+  robots = [robot_1, robot_2, robot_3, robot_4]
 
 
   density_functions = [
     DensityFunction(
       color=Color.CYAN.value,
       center=[5, 0],
-      variance=[1, 1]
+      variance=[2, 2]
+    ),
+    DensityFunction(
+      color=Color.MAGENTA.value,
+      center=[-5, 0],
+      variance=[2, 2]
     )
   ]
 
@@ -264,11 +265,14 @@ if __name__ == "__main__":
   
   # get all emotions of Emotion
   emotions = list(Emotion)
+  vor_robots, vor_prime = swarm.color_coverage_control(density_functions)
 
 
-  sim.plot_environment(env)
-  sim.plot_swarm(swarm)
   sim.plot()
+
+  sim.plot_environment()
+  sim.plot_swarm()
+
 
   for i in range(1000):
 
@@ -292,18 +296,19 @@ if __name__ == "__main__":
       # print(j,vw, color)
 
 
-    sim.plot_swarm(swarm)
-    sim.clear_voronoi()
-    for color, val in vor_prime.items():
-      if val is None:
-        continue
-      centroid, cell, area = val
-      sim.plot_voronoi(centroid, cell, refresh=False, centroid_color=color, boundary_color=color)
+    # sim.clear_voronoi()
+    # for color, val in vor_prime.items():
+    #   if val is None:
+    #     continue
+    #   centroid, cell, area = val
+    #   sim.plot_voronoi(centroid, cell, refresh=False)
 
-    # sim.plot_density_functions(density_functions)
+    sim.plot_swarm()
+    sim.plot_density_functions(density_functions)
+
     sim.update_plot()
     time.sleep(0.01)
 
-
+  plt.savefig('sim.png')
 
   pass
