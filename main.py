@@ -163,9 +163,8 @@ if __name__ == '__main__':
   center_pipeline = CenterPipeline()
 
 
-  full_color = [Color.CYAN.value, Color.MAGENTA.value, Color.YELLOW.value]
-  # place robots evenly on x-axis from -8 to 8
-  poses  = [[i,0,0] for i in np.linspace(-8, 8, num_robot)]
+  # full_color = [Color.CYAN.value, Color.MAGENTA.value, Color.YELLOW.value]
+  # poses  = [[i,0,0] for i in np.linspace(-8, 8, num_robot)]
   # colors = [
   #   [Color.CYAN.value],
   #   [Color.MAGENTA.value],
@@ -190,20 +189,15 @@ if __name__ == '__main__':
   #   full_color,
   #   full_color
   # ]
-  colors = [
-    [Color.CYAN.value],
-    [Color.MAGENTA.value],
-    [Color.YELLOW.value],
-    full_color,
-    full_color,
-    full_color
-  ]
-  robots = [Robot(
-    robot_pose=pose, 
-    equiped_color=color,
-    L = val_L,
-    trail_width=val_trail
-  ) for pose, color in zip(poses, colors)]
+  # colors = [
+  #   [Color.CYAN.value],
+  #   [Color.MAGENTA.value],
+  #   [Color.YELLOW.value],
+  #   full_color,
+  #   full_color,
+  #   full_color
+  # ]
+  robots = init_robots(num_robot, num_color, val_L, val_trail)
 
 
   in_conn, out_conn = Pipe()
