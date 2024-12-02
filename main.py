@@ -1,5 +1,5 @@
 from multiprocessing import Process, Pipe
-from consts import RHO, VARANCE_X, VARANCE_Y
+from consts import RHO, TRAIL_WIDTH, VARANCE_X, VARANCE_Y
 from music import get_audio_chords,  get_audio_tempo
 from pipeline import ColorPipeline, EmotionPipeline, CenterPipeline, cart2pol
 from simulator import Simulator
@@ -137,7 +137,7 @@ if __name__ == '__main__':
   parser.add_argument('--output', type=str, help='output file path', default='output.png')
   
   parser.add_argument('--l', type=float, help='l', default=1.0)
-  parser.add_argument('--trail', type=int, help='trail width', default=15)
+  parser.add_argument('--trail', type=int, help='trail width', default=TRAIL_WIDTH)
   parser.add_argument('--robot', type=int, help='number of robot', default=6)
   parser.add_argument('--color', type=int, help='number of equipped color for each robot', default=3)
 
@@ -155,8 +155,8 @@ if __name__ == '__main__':
   chords = get_audio_chords(audio_file)
   tempos = get_audio_tempo(audio_file)
 
-  chords += [chords[-1]] * 10
-  tempos += [tempos[-1]] * 10
+  chords += [chords[-1]] * 5
+  tempos += [tempos[-1]] * 5
 
   emotion_pipeline = EmotionPipeline()
   color_pipeline = ColorPipeline()
@@ -214,7 +214,7 @@ if __name__ == '__main__':
 
     output = (chord, colors, center, tempo)
     in_conn.send(output)
-    time.sleep(1)
+    time.sleep(1.0)
   
   in_conn.send(None)
 
