@@ -103,7 +103,7 @@ class Swarm:
 
 
 
-  def color_coverage_control(self, density_functions = None):
+  def heterogenous_coverage_control(self, density_functions = None):
     if density_functions is not None:
       self.get_prime_density_functions(density_functions)
     
@@ -182,7 +182,7 @@ class Swarm:
 
 
   def run(self, density_functions, L=1):
-    vor_robots, vor_prime = self.color_coverage_control(density_functions)
+    vor_robots, vor_prime = self.heterogenous_coverage_control(density_functions)
 
     # run until all robots are in their voronoi cell
     while True:
@@ -251,7 +251,7 @@ if __name__ == "__main__":
 
   swarm = Swarm(robots, env, density_functions)
 
-  vor_robots = swarm.color_coverage_control()
+  vor_robots = swarm.heterogenous_coverage_control()
   for i, vor_robot in vor_robots.items():
     print(i)
     centroid, cell, area = zip(*vor_robot)

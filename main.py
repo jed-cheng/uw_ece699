@@ -82,7 +82,7 @@ def proc_simulator(conn, robots, output_file, val_trail, val_L):
       ) for i, color in enumerate(colors)
     ]
 
-    vor_robots, _ = swarm.color_coverage_control(density_functions)
+    vor_robots, _ = swarm.heterogenous_coverage_control(density_functions)
 
     for j in range(len(robots)):
       robot = robots[j]

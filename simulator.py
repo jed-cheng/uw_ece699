@@ -265,7 +265,7 @@ if __name__ == "__main__":
   
   # get all emotions of Emotion
   emotions = list(Emotion)
-  vor_robots, vor_prime = swarm.color_coverage_control(density_functions)
+  vor_robots, vor_prime = swarm.heterogenous_coverage_control(density_functions)
 
 
   sim.plot()
@@ -276,7 +276,7 @@ if __name__ == "__main__":
 
   for i in range(1000):
 
-    vor_robots, vor_prime = swarm.color_coverage_control(density_functions)
+    vor_robots, vor_prime = swarm.heterogenous_coverage_control(density_functions)
 
 
     for j in range(len(robots)):
