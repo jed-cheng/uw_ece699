@@ -77,7 +77,7 @@ def proc_simulator(conn, num_robot, num_color, output_file, val_trail, val_L):
 
 
 
-    step = ENV_SIZE/2 * np.pi / len(colors)
+    step = 2 * np.pi / len(colors)
     density_functions = [
       DensityFunction(
         type='gaussian',
@@ -92,6 +92,9 @@ def proc_simulator(conn, num_robot, num_color, output_file, val_trail, val_L):
 
     vor_robots, _ = swarm.heterogenous_coverage_control(density_functions)
 
+    v = np.zeros((1, N))
+    omega = np.zeros((1, N))
+    leds = np.zeros((3, N))
     for j in range(len(robots)):
       robot = robots[j]
       vor_robot = vor_robots[j]
@@ -99,19 +102,27 @@ def proc_simulator(conn, num_robot, num_color, output_file, val_trail, val_L):
       if vor_robot is None:
         continue
       
-      robot.coverage_control(vor_robot, delta=mrs.DT)
-      
-      robot.coverage_control_color(vor_robot,
+      vw = robot.coverage_control(vor_robot, delta=mrs.DT)
+      v[0][j] = vw[0]
+      omega[0][j] = vw[1]
+
+      color = robot.coverage_control_color(vor_robot,
         swarm.cyan_density_functions,
         swarm.magenta_density_functions,
         swarm.yellow_density_functions
       )
+      color = (color * 255).astype(int)
+      leds[:, j] = color[:3]
 
-      print(robot.get_poses())
 
       # robot.tempo_control_L(tempo)
       # print(robot.get_L())
 
+    # print('v', v)
+    # print('omega', omega)
+    print('rgb', leds)
+    mrs.set_robots_speeds_and_grippers_powers(np.vstack((v, np.zeros((1, N)), omega)), np.zeros((1, N)))
+    mrs.set_leds(leds)
     phi = (phi + 1) % 360
 
 
