@@ -25,12 +25,14 @@ class Swarm:
     self.magenta_density_functions = None
     self.yellow_density_functions = None
 
-
+  
 
 
   def get_robot_locations(self):
     return np.array([robot.robot_pose[:2] for robot in self.robots])
 
+
+  
 
   def mirror_robots_about_environment(self, robots):
     robot_locations = np.array([robot.robot_pose[:2] for robot in robots])

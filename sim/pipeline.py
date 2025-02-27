@@ -77,7 +77,7 @@ class CenterPipeline:
   def __init__(self):
     self.locations = None
     self.emotions = None
-    self.R = 3
+    self.R = 0.5
     # eight_divide_1 = 2.121320343559643
     # eight_divide_2 = eight_divide_1 * 2
     # eight_divide_3 = eight_divide_1 * 3

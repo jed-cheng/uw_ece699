@@ -13,7 +13,8 @@ import numpy as np
 from utils import Color, DensityFunction
 import time
 from src.multi_dji_robomaster_ep_sim import MultiDJIRoboMasterEPSim
-
+from src.multi_dji_robomaster_ep import MultiDJIRoboMasterEP
+import colorsys
 
 def proc_simulator(conn, num_robot, num_color, output_file, val_trail, val_L):
 
@@ -25,15 +26,29 @@ def proc_simulator(conn, num_robot, num_color, output_file, val_trail, val_L):
     [ENV_SIZE/2, ENV_SIZE/2]
   ])
 
-  ROBOT_IDS = [i for i in range(num_robot)]
+  print(env)
+
+  ROBOT_IDS = [3,4,5,6,7,8]
   N = len(ROBOT_IDS)
-  INITIAL_ROBOTS_POSES = np.vstack((np.linspace(-2., 2., N), np.zeros((1, N)), np.pi * np.ones((1, N))))
+  # INITIAL_ROBOTS_POSES = np.vstack((np.linspace(-2., 2., N), np.zeros((1, N)), np.pi * np.ones((1, N))))
+  # initial robot pose in a circle
+  INITIAL_ROBOTS_POSES = np.vstack((
+      np.cos(np.linspace(-np.pi, np.pi, N, endpoint=False)),
+      np.sin(np.linspace(-np.pi, np.pi, N, endpoint=False)),
+      np.linspace(-np.pi, np.pi, N, endpoint=False)
+  ))
+
+  # mrs = MultiDJIRoboMasterEPSim(ROBOT_IDS,
+  #                             backend_server_ip=None,
+  #                             initial_robots_poses=INITIAL_ROBOTS_POSES,
+  #                             safety_layer=True,
+  #                             safety_radius=0.5)
   mrs = MultiDJIRoboMasterEPSim(ROBOT_IDS,
-                              backend_server_ip=None,
-                              initial_robots_poses=INITIAL_ROBOTS_POSES,
-                              safety_layer=True,
-                              safety_radius=0.5)
-  robots = init_robots(num_robot, num_color, val_L, val_trail)
+                            backend_server_ip='192.168.0.2',
+                            initial_robots_poses=INITIAL_ROBOTS_POSES,
+                            safety_layer=True,
+                            safety_radius=0.5)
+  robots = init_robots(num_robot, num_color, val_L, val_trail, robot_pos=INITIAL_ROBOTS_POSES)
   swarm = Swarm(robots, env)
 
 
@@ -44,10 +59,10 @@ def proc_simulator(conn, num_robot, num_color, output_file, val_trail, val_L):
   chord = None
   prev_chord = None
 
-  phi = 0
+  phi = 0.5
 
 
-
+  print('start')
   while True:
     readable, _, _ = select.select([conn], [], [], 0.01)  # 0.1 is the timeout in seconds
     if conn in readable:
@@ -57,7 +72,7 @@ def proc_simulator(conn, num_robot, num_color, output_file, val_trail, val_L):
           conn.close()
           break
       elif item is not None:
-        # print('simulator receive:', item)
+        print('simulator receive:', item)
 
         i_chord, i_colors, i_center, i_tempo = item
         if i_chord != chord:
@@ -67,6 +82,8 @@ def proc_simulator(conn, num_robot, num_color, output_file, val_trail, val_L):
         prev_chord = chord
         chord = i_chord
 
+    robot_pos = mrs.get_robots_poses()
+    swarm.set_robot_pose(robot_pos)
 
 
     if center is None or colors is None:
@@ -92,8 +109,8 @@ def proc_simulator(conn, num_robot, num_color, output_file, val_trail, val_L):
 
     vor_robots, _ = swarm.heterogenous_coverage_control(density_functions)
 
-    v = np.zeros((1, N))
-    omega = np.zeros((1, N))
+    v = 1.*np.ones((1, N))
+    omega = 1.*np.ones((1, N))
     leds = np.zeros((3, N))
     for j in range(len(robots)):
       robot = robots[j]
@@ -102,7 +119,7 @@ def proc_simulator(conn, num_robot, num_color, output_file, val_trail, val_L):
       if vor_robot is None:
         continue
       
-      vw = robot.coverage_control(vor_robot, delta=mrs.DT)
+      vw = robot.coverage_control(vor_robot)
       v[0][j] = vw[0]
       omega[0][j] = vw[1]
 
@@ -111,29 +128,36 @@ def proc_simulator(conn, num_robot, num_color, output_file, val_trail, val_L):
         swarm.magenta_density_functions,
         swarm.yellow_density_functions
       )
-      color = (color * 255).astype(int)
-      leds[:, j] = color[:3]
+      hsv = np.array(colorsys.rgb_to_hsv(color[0],color[1],color[3]))
+      hsv[1] = hsv[1]**(1.0/3.0)
+      rgb = np.array(colorsys.hsv_to_rgb(hsv[0], hsv[1], hsv[2]))
+      rgb = (rgb * 255).astype(int)
+
+      
+      leds[:, j] = rgb[:3]
 
 
       # robot.tempo_control_L(tempo)
       # print(robot.get_L())
 
-    # print('v', v)
-    # print('omega', omega)
-    print('rgb', leds)
-    mrs.set_robots_speeds_and_grippers_powers(np.vstack((v, np.zeros((1, N)), omega)), np.zeros((1, N)))
+    print('v', v)
+    print('omega', omega)
+    print('leds',leds)
+    robots_speeds = np.vstack((v, np.zeros((1, N)), omega)) # longitudinal, lateral=0, angular in a local reference frame
+
+    mrs.set_robots_speeds_and_grippers_powers(robots_speeds, np.zeros((N, )), local_frame=True)
     mrs.set_leds(leds)
-    phi = (phi + 1) % 360
+    phi = (phi + 0.1) % 360
 
 
 
 
 
-def init_robots(num_robot, num_color,val_L,val_trail):
+def init_robots(num_robot, num_color,val_L,val_trail, robot_pos):
   full_color = [Color.CYAN.value, Color.MAGENTA.value, Color.YELLOW.value]
   # place robots evenly on x-axis from -8 to 8
   N = num_robot
-  poses  = np.vstack((np.linspace(-2., 2., N), np.zeros((1, N)), np.pi * np.ones((1, N)))).T
+  poses  = robot_pos.T
   colors = [
       [full_color[(i + j) % len(full_color)] for j in range(num_color)]
       for i in range(len(poses))
@@ -157,7 +181,7 @@ if __name__ == '__main__':
   parser.add_argument('audio', type=str, help='audio file path')
   parser.add_argument('--output', type=str, help='output file path', default='output.png')
   
-  parser.add_argument('--l', type=float, help='l', default=1.0)
+  parser.add_argument('--l', type=float, help='l', default=0.1)
   parser.add_argument('--trail', type=int, help='trail width', default=TRAIL_WIDTH)
   parser.add_argument('--robot', type=int, help='number of robot', default=6)
   parser.add_argument('--color', type=int, help='number of equipped color for each robot', default=3)
@@ -218,7 +242,7 @@ if __name__ == '__main__':
   #   full_color,
   #   full_color
   # ]
-  robots = init_robots(num_robot, num_color, val_L, val_trail)
+  # robots = init_robots(num_robot, num_color, val_L, val_trail)
 
 
   in_conn, out_conn = Pipe()

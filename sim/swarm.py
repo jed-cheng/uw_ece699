@@ -32,6 +32,11 @@ class Swarm:
     return np.array([robot.robot_pose[:2] for robot in self.robots])
 
 
+  def set_robot_pose(self, robot_pos):
+    for i in range(len(self.robots)):
+      poses  = robot_pos[:,i]
+      self.robots[i].robot_pose = poses
+
   def mirror_robots_about_environment(self, robots):
     robot_locations = np.array([robot.robot_pose[:2] for robot in robots])
     environment = self.environment

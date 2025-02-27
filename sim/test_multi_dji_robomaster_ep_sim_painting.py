@@ -1,12 +1,12 @@
-from src.multi_dji_robomaster_ep_sim import MultiDJIRoboMasterEPSim
+from src.multi_dji_robomaster_ep import MultiDJIRoboMasterEP
 import numpy as np
 
-ROBOT_IDS = [8, 7, 3, 1, 2, 9, 4, 5, 6]
+ROBOT_IDS = [3,4,5,6,7,8]
 N = len(ROBOT_IDS)
 INITIAL_ROBOTS_POSES = np.vstack((np.linspace(-2., 2., N), np.zeros((1, N)), np.pi * np.ones((1, N))))
 
-mrs = MultiDJIRoboMasterEPSim(ROBOT_IDS,
-                            backend_server_ip=None,
+mrs = MultiDJIRoboMasterEP(ROBOT_IDS,
+                            backend_server_ip='192.168.0.2',
                             initial_robots_poses=INITIAL_ROBOTS_POSES,
                             safety_layer=True,
                             safety_radius=0.5)
